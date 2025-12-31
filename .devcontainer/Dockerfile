@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     file \
     qemu-system-gui \
+    ssh \
  && rm -rf /var/lib/apt/lists/*
 
 # Nice-to-have: keep build artifacts out of root-owned dirs when using bind mounts
