@@ -1,4 +1,5 @@
 #include "io/printf/printf.h"
+#include "io/serial.h"
 #include <stdint.h>
 
 void _start(void) __attribute__((section(".init")));

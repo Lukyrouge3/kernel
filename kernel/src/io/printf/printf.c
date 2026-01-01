@@ -1,4 +1,8 @@
 #include "io/printf/printf.h"
+#include "io/serial.h"
+#include "stdlib.h"
+#include <stdarg.h>
+#include <stdbool.h>
 
 static void put_char(va_list args, putc_fn putc) {
     char c = va_arg(args, int);
