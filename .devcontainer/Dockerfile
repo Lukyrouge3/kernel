@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     file \
     qemu-system-gui \
     ssh \
+    cppcheck \
  && rm -rf /var/lib/apt/lists/*
 
 # Where the cross toolchain will be installed
