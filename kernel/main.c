@@ -69,7 +69,7 @@ void    kprint(const char* string)
 
 void    scroll(void)
 {
-    uint8_t pos = get_cursor_pos();
+    uint16_t pos = get_cursor_pos();
 
     for (int i = 0; i < pos; i++)
     {
