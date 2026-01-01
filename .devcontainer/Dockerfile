@@ -4,7 +4,11 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    bison flex \
+    libgmp3-dev libmpc-dev libmpfr-dev \
     make \
+    texinfo \
+    wget xz-utils \
     nasm \
     binutils \
     qemu-system-x86 \
@@ -18,7 +22,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ssh \
  && rm -rf /var/lib/apt/lists/*
 
-# Nice-to-have: keep build artifacts out of root-owned dirs when using bind mounts
+# Where the cross toolchain will be installed
+ENV PREFIX=/opt/cross
+ENV TARGET=i686-elf
+ENV PATH="${PREFIX}/bin:${PATH}"
+
+WORKDIR /src
+COPY build-toolchain.sh /src/build-toolchain.sh
+RUN chmod +x /src/build-toolchain.sh
+
+RUN /src/build-toolchain.sh
+
 RUN useradd -m -s /bin/bash dev
-USER dev
 WORKDIR /work
+USER dev
