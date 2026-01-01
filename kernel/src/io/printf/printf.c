@@ -15,15 +15,18 @@ static void put_int(va_list args, putc_fn putc) {
     char buffer[12]; // Enough for 32-bit int
     int index = 0;
     bool is_negative = false;
+    unsigned int uvalue;
 
     if (value < 0) {
         is_negative = true;
-        value = -value;
+        /* Compute absolute value without risking overflow on INT_MIN */
+        uvalue = (unsigned int)(-(value + 1)) + 1;
+    } else {
+        uvalue = (unsigned int)value;
     }
-
-    while (value > 0) {
-        buffer[index++] = (value % 10) + '0';
-        value /= 10;
+    while (uvalue > 0) {
+        buffer[index++] = (uvalue % 10) + '0';
+        uvalue /= 10;
     }
 
     if (is_negative) {
@@ -64,6 +67,9 @@ static void printf(const char *format, putc_fn putc, va_list args) {
     for (int i = 0; format[i]; i++) {
         if (format[i] == '%') {
             i++;
+            if (format[i] == '\0') {
+                break;
+            }
             switch (format[i]) {
             case 'c':
                 put_char(args, putc);
@@ -83,6 +89,9 @@ static void printf(const char *format, putc_fn putc, va_list args) {
             case 'X':
                 put_hex(args, putc, true);
                 break;
+            case '%':
+                putc('%');
+                break;
             default:
                 break;
             }
@@ -97,4 +106,5 @@ void serial_printf(const char *format, ...) {
 
     va_start(args, format);
     printf(format, serial_putc, args);
+    va_end(args);
 }

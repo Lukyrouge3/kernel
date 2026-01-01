@@ -18,7 +18,7 @@ static int serial_can_transmit(void) {
 void serial_write(const char *str) {
     for (; *str; str++) {
         if (*str == '\n')
-            serial_putc('\r'); // common convetion
+            serial_putc('\r'); // common convention
         serial_putc(*str);
     }
 }

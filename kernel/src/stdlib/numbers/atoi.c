@@ -13,5 +13,5 @@ int atoi(const char *str) {
         str++;
     }
     nbr = strtonbr(str);
-    return (sign * nbr);
+    return (int)((long long)sign * (long long)nbr);
 }
