@@ -12,7 +12,7 @@ static uint16_t vga_entry(char c, uint8_t color) {
 void _start(void) {
     serial_init_com1();
 
-    printf("%s %d %X\n", serial_putc, "The answer is", 42, 0x2A);
+    serial_printf("%s %d %X\n", "The answer is", 42, 0x2A);
 
     for (;;) {
     }

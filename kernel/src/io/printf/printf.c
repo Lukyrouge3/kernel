@@ -1,12 +1,5 @@
 #include "io/printf/printf.h"
 
-void serial_printf(const char *format, ...) {
-    va_list args;
-
-    va_start(args, format);
-    printf(format, serial_putc, args);
-}
-
 static void put_char(va_list args, putc_fn putc) {
     char c = va_arg(args, int);
     putc(c);
@@ -67,10 +60,7 @@ static void put_hex(va_list args, putc_fn putc, bool uppercase) {
     }
 }
 
-void printf(const char *format, putc_fn putc, ...) {
-    va_list args;
-
-    va_start(args, format);
+static void printf(const char *format, putc_fn putc, va_list args) {
     for (int i = 0; format[i]; i++) {
         if (format[i] == '%') {
             i++;
@@ -100,4 +90,11 @@ void printf(const char *format, putc_fn putc, ...) {
             putc(format[i]);
         }
     }
+}
+
+void serial_printf(const char *format, ...) {
+    va_list args;
+
+    va_start(args, format);
+    printf(format, serial_putc, args);
 }
