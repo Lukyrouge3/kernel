@@ -50,7 +50,6 @@ disk_error:
 
 bits 32
 pm_entry:
-
     ; Load data segment registers with data selector
     mov ax, 0x10             ; 0x10 = data selector (3rd descriptor)
     mov ds, ax
@@ -60,13 +59,6 @@ pm_entry:
     mov ss, ax
 
     mov esp, 0x7c00    ; Set stack pointer
-
-    mov byte [0xB8000], 'A'
-    mov byte [0xB8001], 0x0F
-    mov byte [0xB8002], 'B'
-    mov byte [0xB8003], 0x0F
-    mov byte [0xB8004], 'C'
-    mov byte [0xB8005], 0x0F
 
     cli ; [CLear InteruptFlag] Clear interupt flags and set to 0
     jmp 0x10000

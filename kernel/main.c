@@ -11,5 +11,5 @@ void _start(void) {
         VGA[i] = vga_entry(s[i], 0x0F); // white on black
     }
 
-    for (;;) { __asm__ volatile ("hlt"); }
+    for (;;) {  }
 }
