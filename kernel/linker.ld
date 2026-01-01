@@ -4,7 +4,7 @@ SECTIONS
 {
   /* Match whatever physical/virtual address your bootloader jumps to.
      1 MiB is common, but YOU must align this with your loader. */
-  . = 1M;
+  . = 0x10000;
 
   .text : ALIGN(4K)
   {

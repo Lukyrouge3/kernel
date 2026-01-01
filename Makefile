@@ -14,9 +14,11 @@ build_disk: compile_boot kernel.bin
 	dd if=/dev/zero of=build/floppy.img bs=512 count=2880
 	dd if=build/boot.bin of=build/floppy.img conv=notrunc bs=512 count=1
 	dd if=build/kernel.bin of=build/floppy.img bs=512 seek=1 conv=notrunc
+	@echo "Kernel size: $$(stat -c%s build/kernel.bin) bytes"
+	@echo "Sectors needed: $$(( ($$(stat -c%s build/kernel.bin) + 511) / 512 ))"
 
-run_bootloader: build_disk
-	qemu-system-i386 -drive format=raw,file=build/floppy.img,index=0,if=floppy
+run: build_disk
+	qemu-system-i386 -fda build/floppy.img -boot a
 
 main.o: kernel/main.c
 	$(CC) $(CFLAGS) -c $< -o build/$@
