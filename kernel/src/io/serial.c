@@ -12,7 +12,7 @@ void serial_init_com1(void) {
     io_wait();
 }
 
-static int serial_can_transmit(void) {
+int serial_can_transmit(void) {
     return (inb(COM1 + 5) & (1 << 5)) != 0; // LSR bit 5 = THRE
 }
 
