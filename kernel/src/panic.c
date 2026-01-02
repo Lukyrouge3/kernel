@@ -2,6 +2,7 @@
 #include "cpu_utils/cpu_utils.h"
 #include "io/printf/printf.h"
 #include "io/serial.h"
+#include <stdarg.h>
 #include <stdbool.h>
 
 __attribute__((noreturn)) void cpu_halt_forever(void) {

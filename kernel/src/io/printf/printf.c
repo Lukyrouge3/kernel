@@ -68,6 +68,10 @@ static void put_hex(va_list *args, putc_fn putc, bool uppercase) {
 }
 
 void printf(const char *format, putc_fn putc, va_list *args) {
+    if (!format || !putc || !args) {
+        return;
+    }
+
     for (size_t i = 0; format[i]; i++) {
         if (format[i] == '%') {
             i++;

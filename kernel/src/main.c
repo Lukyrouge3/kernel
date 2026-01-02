@@ -1,17 +1,16 @@
 #include "cpu_utils/cpu_utils.h"
+#include "cpu_utils/idt.h"
+#include "io/pic.h"
 #include "io/printf/printf.h"
 #include "io/serial.h"
 #include "io/vga.h"
 #include "panic.h"
 #include <stdint.h>
-#include "cpu_utils/idt.h"
-#include "io/pic.h"
 
 void _start(void) __attribute__((section(".init")));
 
 static void assert_protected_mode(void) {
-    uint16_t cs;
-    __asm__ volatile("mov %%cs, %0" : "=r"(cs));
+    uint16_t cs = read_cs();
     ASSERT((cs & 0x3) == 0); // Ensure CPL is 0 (kernel mode)
 
     uint32_t cr0;
@@ -31,19 +30,13 @@ static void assert_flat_segments(void) {
 }
 
 void _start(void) {
+    serial_init_com1();
     assert_protected_mode();
     assert_flat_segments();
     pic_remap();
     idt_init();
-    serial_init_com1();
 
-    serial_printf("%s %d %X\n", "The answer is", 42, 0x2A);
     clear_screen();
-    kprint("The answer is 42 in decimal and 2A in hexadecimal.\n");
-    kprint("Hello, VGA World!\n");
-    scroll();
-
-    PANIC("This is a test panic with value: %d", 12345);
 
     for (;;) {
     }
