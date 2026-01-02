@@ -11,7 +11,7 @@ static void set_idt_gate(int n, uint32_t handler) {
     idt[n].offset_high = (handler >> 16) & 0xFFFF;
 }
 
-void idt_init() {//TODO add more handlers for cpu interupts
+void idt_init() {//TODO add more handlers for cpu interrupts
     idtp.limit = sizeof(idt) - 1;
     idtp.base = (uint32_t)&idt;
 
@@ -20,7 +20,7 @@ void idt_init() {//TODO add more handlers for cpu interupts
         set_idt_gate(i, 0); // default: no handler
     }
 
-    set_idt_gate(0x21, (uint32_t)irq1_handler);
+    set_idt_gate(0x21, (uint32_t)irq1_handler);//keyboard IRQ1
 
     // Load IDT into CPU
     __asm__ volatile("lidt (%0)" : : "r"(&idtp));

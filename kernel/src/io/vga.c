@@ -7,17 +7,17 @@ static uint16_t vga_entry(char c, uint8_t color) {
 }
 
 uint16_t vga_get_cursor_pos(void) {
-    outb(VGA_CRT_CTRL_ADDR, VGA_CURSOR_LOC_HIGH);
-    uint16_t pos = inb(VGA_CRT_CTRL_DATA);
     outb(VGA_CRT_CTRL_ADDR, VGA_CURSOR_LOC_LOW);
+    uint16_t pos = inb(VGA_CRT_CTRL_DATA);
+    outb(VGA_CRT_CTRL_ADDR, VGA_CURSOR_LOC_HIGH);
     pos |= (uint16_t)inb(VGA_CRT_CTRL_DATA) << 8;
     return pos;
 }
 
 void vga_set_cursor_pos(uint16_t pos) {
-    outb(VGA_CRT_CTRL_ADDR, VGA_CURSOR_LOC_HIGH);
-    outb(VGA_CRT_CTRL_DATA, (uint8_t)(pos & 0xFF));
     outb(VGA_CRT_CTRL_ADDR, VGA_CURSOR_LOC_LOW);
+    outb(VGA_CRT_CTRL_DATA, (uint8_t)(pos & 0xFF));
+    outb(VGA_CRT_CTRL_ADDR, VGA_CURSOR_LOC_HIGH);
     outb(VGA_CRT_CTRL_DATA, (uint8_t)((pos >> 8) & 0xFF));
 }
 

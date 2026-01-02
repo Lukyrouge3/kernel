@@ -14,6 +14,8 @@ static const char scancode_map[128] = {
 
 void keyboard_handler_c(void) {
     unsigned char scancode = inb(KEYBOARD_CTRL_DATA);
+    if (scancode > 127)
+        return; // Extended scancode, ignore for now
     if (scancode & 0x80)
         return; // Key released, ignore
     if (scancode_map[scancode] == '\n') {

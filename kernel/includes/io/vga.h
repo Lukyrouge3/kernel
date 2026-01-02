@@ -11,8 +11,8 @@
 #define VGA_CRT_CTRL_ADDR 0x3D4
 #define VGA_CRT_CTRL_DATA 0x3D5
 
-#define VGA_CURSOR_LOC_HIGH 0x0F
-#define VGA_CURSOR_LOC_LOW 0x0E
+#define VGA_CURSOR_LOC_LOW 0x0F
+#define VGA_CURSOR_LOC_HIGH 0x0E
 
 uint16_t vga_get_cursor_pos(void);
 void vga_set_cursor_pos(uint16_t pos);
