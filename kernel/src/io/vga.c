@@ -6,56 +6,64 @@ static uint16_t vga_entry(char c, uint8_t color) {
     return (uint16_t)c | ((uint16_t)color << 8);
 }
 
-uint16_t get_cursor_pos(void) {
-    outb(VGA_CRT_CTRL_ADDR, VGA_CURSOR_LOC_HIGH);
-    uint16_t pos = inb(VGA_CRT_CTRL_DATA);
+uint16_t vga_get_cursor_pos(void) {
     outb(VGA_CRT_CTRL_ADDR, VGA_CURSOR_LOC_LOW);
+    uint16_t pos = inb(VGA_CRT_CTRL_DATA);
+    outb(VGA_CRT_CTRL_ADDR, VGA_CURSOR_LOC_HIGH);
     pos |= (uint16_t)inb(VGA_CRT_CTRL_DATA) << 8;
     return pos;
 }
 
-void set_cursor_pos(uint16_t pos) {
-    outb(VGA_CRT_CTRL_ADDR, VGA_CURSOR_LOC_HIGH);
-    outb(VGA_CRT_CTRL_DATA, (uint8_t)(pos & 0xFF));
+void vga_set_cursor_pos(uint16_t pos) {
     outb(VGA_CRT_CTRL_ADDR, VGA_CURSOR_LOC_LOW);
+    outb(VGA_CRT_CTRL_DATA, (uint8_t)(pos & 0xFF));
+    outb(VGA_CRT_CTRL_ADDR, VGA_CURSOR_LOC_HIGH);
     outb(VGA_CRT_CTRL_DATA, (uint8_t)((pos >> 8) & 0xFF));
 }
 
-void clear_screen(void) {
+void vga_clear_screen(void) {
     for (int i = 0; i < VGA_ENTRIES; i++) {
         VGA[i] = vga_entry(' ', (uint8_t)TEXT_COLOR);
     }
-    set_cursor_pos(0);
+    vga_set_cursor_pos(0);
 }
 
-void kprint(const char *string) {
-    uint16_t pos = get_cursor_pos();
-
-    for (int i = 0; string[i] && pos < VGA_ENTRIES; i++) {
-        char c = string[i];
-
-        if (c == '\n') {
-            pos = (pos / VGA_WIDTH + 1) * VGA_WIDTH;
-            continue;
-        }
-
-        VGA[pos++] = vga_entry(c, (uint8_t)TEXT_COLOR);
+void vga_putc(const char c) {
+    uint16_t pos = vga_get_cursor_pos();
+    if (pos >= VGA_ENTRIES) {
+        vga_scroll();
+        pos = VGA_ENTRIES - VGA_WIDTH;
     }
-
-    if (pos >= VGA_ENTRIES)
-        pos = VGA_ENTRIES - 1;
-    set_cursor_pos(pos);
+    VGA[pos++] = vga_entry(c, (uint8_t)TEXT_COLOR);
+    vga_set_cursor_pos(pos);
 }
 
-void scroll(void) {
-    uint16_t pos = get_cursor_pos();
-
-    for (int i = 0; i < pos; i++) {
-        if (i + VGA_WIDTH > pos) {
-            VGA[i] = vga_entry(' ', TEXT_COLOR);
-            continue;
-        }
-        VGA[i] = vga_entry(VGA[i + VGA_WIDTH], TEXT_COLOR);
+void vga_newline(void) {
+    uint16_t pos = vga_get_cursor_pos();
+    pos += VGA_WIDTH - (pos % VGA_WIDTH);
+    if (pos >= VGA_ENTRIES) {
+        vga_scroll();
+        pos = VGA_ENTRIES - VGA_WIDTH;
     }
-    set_cursor_pos(pos - VGA_WIDTH);
+    vga_set_cursor_pos(pos);
+}
+
+void vga_scroll(void) {
+    uint16_t pos = vga_get_cursor_pos();
+
+    for (int i = 0; i < VGA_ENTRIES - VGA_WIDTH; i++) {
+        VGA[i] = VGA[i + VGA_WIDTH];
+    }
+
+    /* Clear the bottom line */
+    for (int i = VGA_ENTRIES - VGA_WIDTH; i < VGA_ENTRIES; i++) {
+        VGA[i] = vga_entry(' ', (uint8_t)TEXT_COLOR);
+    }
+    /* Move cursor up one line safely */
+    if (pos >= VGA_WIDTH) {
+        pos -= VGA_WIDTH;
+    } else {
+        pos = 0;
+    }
+    vga_set_cursor_pos(pos);
 }
