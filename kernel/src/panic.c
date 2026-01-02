@@ -1,4 +1,5 @@
 #include "panic.h"
+#include "cpu_utils/cpu_utils.h"
 #include "io/printf/printf.h"
 #include "io/serial.h"
 #include <stdbool.h>
@@ -19,6 +20,10 @@ __attribute__((noreturn)) void panic_impl(const char *file, int line, const char
 
     serial_printf("\n\n*** KERNEL PANIC ***\n");
     serial_printf("At %s:%d in %s()\n", file, line, func);
+
+    cpu_registers_t regs;
+    get_cpu_registers(&regs);
+    print_cpu_registers(&regs);
 
     if (format) {
         va_list args;
