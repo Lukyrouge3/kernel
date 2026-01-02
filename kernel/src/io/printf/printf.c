@@ -1,17 +1,16 @@
 #include "io/printf/printf.h"
 #include "io/serial.h"
 #include "stdlib.h"
-#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 
-static void put_char(va_list args, putc_fn putc) {
-    char c = va_arg(args, int);
+static void put_char(va_list *args, putc_fn putc) {
+    char c = va_arg(*args, int);
     putc(c);
 }
 
-static void put_int(va_list args, putc_fn putc) {
-    int value = va_arg(args, int);
+static void put_int(va_list *args, putc_fn putc) {
+    int value = va_arg(*args, int);
     if (value == 0) {
         putc('0');
         return;
@@ -43,8 +42,8 @@ static void put_int(va_list args, putc_fn putc) {
     }
 }
 
-static void put_hex(va_list args, putc_fn putc, bool uppercase) {
-    unsigned int value = va_arg(args, unsigned int);
+static void put_hex(va_list *args, putc_fn putc, bool uppercase) {
+    unsigned int value = va_arg(*args, unsigned int);
     char buffer[9]; // Enough for 32-bit hex
     int index = 0;
 
@@ -68,7 +67,11 @@ static void put_hex(va_list args, putc_fn putc, bool uppercase) {
     }
 }
 
-static void printf(const char *format, putc_fn putc, va_list args) {
+void printf(const char *format, putc_fn putc, va_list *args) {
+    if (!format || !putc || !args) {
+        return;
+    }
+
     for (size_t i = 0; format[i]; i++) {
         if (format[i] == '%') {
             i++;
@@ -83,17 +86,11 @@ static void printf(const char *format, putc_fn putc, va_list args) {
                 put_int(args, putc);
                 break;
             case 's': {
-
-                char *str = va_arg(args, char *);
-                if (str == NULL) {
-                    const char *null_str = "(null)";
-                    for (size_t j = 0; null_str[j]; j++) {
-                        putc(null_str[j]);
-                    }
-                } else {
-                    for (size_t j = 0; str[j]; j++) {
-                        putc(str[j]);
-                    }
+                const char *str = va_arg(*args, const char *);
+                if (!str)
+                    str = "(null)";
+                for (size_t j = 0; str[j]; j++) {
+                    putc(str[j]);
                 }
             } break;
             case 'x':
@@ -118,6 +115,6 @@ void serial_printf(const char *format, ...) {
     va_list args;
 
     va_start(args, format);
-    printf(format, serial_putc, args);
+    printf(format, serial_putc, &args);
     va_end(args);
 }
