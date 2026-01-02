@@ -28,22 +28,25 @@ void clear_screen(void) {
     set_cursor_pos(0);
 }
 
-void kprint(const char *string) {
+void put_char_vga(const char c) {
     uint16_t pos = get_cursor_pos();
-
-    for (int i = 0; string[i] && pos < VGA_ENTRIES; i++) {
-        char c = string[i];
-
-        if (c == '\n') {
-            pos = (pos / VGA_WIDTH + 1) * VGA_WIDTH;
-            continue;
-        }
-
-        VGA[pos++] = vga_entry(c, (uint8_t)TEXT_COLOR);
-    }
-
     if (pos >= VGA_ENTRIES)
-        pos = VGA_ENTRIES - 1;
+    {
+        scroll();
+        pos = VGA_ENTRIES - VGA_WIDTH;
+    }
+    VGA[pos++] = vga_entry(c, (uint8_t)TEXT_COLOR);
+    set_cursor_pos(pos);
+}
+
+void newline_vga(void) {
+    uint16_t pos = get_cursor_pos();
+    pos += VGA_WIDTH - (pos % VGA_WIDTH);
+    if (pos >= VGA_ENTRIES)
+    {
+        scroll();
+        pos = VGA_ENTRIES - VGA_WIDTH;
+    }
     set_cursor_pos(pos);
 }
 

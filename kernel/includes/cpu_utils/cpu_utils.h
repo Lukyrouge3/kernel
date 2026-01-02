@@ -21,3 +21,5 @@ typedef struct {
 
 void get_cpu_registers(cpu_registers_t *regs);
 void print_cpu_registers(const cpu_registers_t *regs);
+void save_cpu_state();
+void restore_cpu_state();

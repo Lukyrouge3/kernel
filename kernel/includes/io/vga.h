@@ -17,6 +17,7 @@
 uint16_t get_cursor_pos(void);
 void set_cursor_pos(uint16_t pos);
 void clear_screen(void);
-void kprint(const char *string);
+void put_char_vga(const char c);
+void newline_vga(void);
 void scroll(void);
 #endif

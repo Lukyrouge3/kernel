@@ -4,6 +4,8 @@
 #include "io/vga.h"
 #include "panic.h"
 #include <stdint.h>
+#include "cpu_utils/idt.h"
+#include "io/pic.h"
 
 void _start(void) __attribute__((section(".init")));
 
@@ -31,7 +33,8 @@ static void assert_flat_segments(void) {
 void _start(void) {
     assert_protected_mode();
     assert_flat_segments();
-
+    pic_remap();
+    idt_init();
     serial_init_com1();
 
     serial_printf("%s %d %X\n", "The answer is", 42, 0x2A);

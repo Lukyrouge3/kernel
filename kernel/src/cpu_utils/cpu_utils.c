@@ -47,4 +47,39 @@ void print_cpu_registers(const cpu_registers_t *regs) {
     serial_printf("ESI: 0x%X | EDI: 0x%X | EBP: 0x%X | ESP: 0x%X\n", regs->esi, regs->edi,
                   regs->ebp, regs->esp);
     serial_printf("EIP: 0x%X | EFLAGS: 0x%X\n", regs->eip, regs->eflags);
+
+void save_cpu_state() {
+    __asm__ volatile(
+        "push %%eax\n"
+        "push %%ecx\n"
+        "push %%edx\n"
+        "push %%ebx\n"
+        "push %%esp\n"
+        "push %%ebp\n"
+        "push %%esi\n"
+        "push %%edi\n"
+        "push %%ds\n"  //push data segment
+        "push %%es\n"  //push extra segment
+        :
+        :
+        : "memory"
+    );
+}
+
+void restore_cpu_state() {
+    __asm__ volatile(
+        "pop %%es\n"
+        "pop %%ds\n"
+        "pop %%edi\n"
+        "pop %%esi\n"
+        "pop %%ebp\n"
+        "pop %%esp\n"
+        "pop %%ebx\n"
+        "pop %%edx\n"
+        "pop %%ecx\n"
+        "pop %%eax\n"
+        :
+        :
+        : "memory"
+    );
 }
