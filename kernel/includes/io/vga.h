@@ -14,10 +14,10 @@
 #define VGA_CURSOR_LOC_HIGH 0x0F
 #define VGA_CURSOR_LOC_LOW 0x0E
 
-uint16_t get_cursor_pos(void);
-void set_cursor_pos(uint16_t pos);
-void clear_screen(void);
-void put_char_vga(const char c);
-void newline_vga(void);
-void scroll(void);
+uint16_t vga_get_cursor_pos(void);
+void vga_set_cursor_pos(uint16_t pos);
+void vga_clear_screen(void);
+void vga_putc(const char c);
+void vga_newline(void);
+void vga_scroll(void);
 #endif

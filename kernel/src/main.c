@@ -29,14 +29,14 @@ static void assert_flat_segments(void) {
     */
 }
 
+// cppcheck-suppress unusedFunction
 void _start(void) {
     serial_init_com1();
     assert_protected_mode();
     assert_flat_segments();
     pic_remap();
     idt_init();
-
-    clear_screen();
+    vga_clear_screen();
 
     for (;;) {
     }

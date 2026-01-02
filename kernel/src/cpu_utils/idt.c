@@ -1,5 +1,8 @@
 #include "cpu_utils/idt.h"
 
+static struct idt_entry idt[256];
+static struct idt_ptr idtp;
+
 static void set_idt_gate(int n, uint32_t handler) {
     idt[n].offset_low = handler & 0xFFFF;
     idt[n].selector = 0x08; //what segment to use in our gdt

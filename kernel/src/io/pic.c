@@ -1,6 +1,6 @@
 #include "io/pic.h"
 
-//all of this is in big endian
+//all of this is in little endian
 void pic_remap(void) {
     //initialize PIC (ICW1) tells cpu start initialization
     outb(MASTER_PIC_CTRL_ADDR, 0b00010001);//see icw1 bits meaning

@@ -16,7 +16,6 @@ struct idt_ptr {
     uint32_t base;
 } __attribute__((packed));
 
-static struct idt_entry idt[256];
-static struct idt_ptr idtp;
+
 
 void idt_init();
