@@ -10,8 +10,8 @@ void save_cpu_state() {
         "push %%ebp\n"
         "push %%esi\n"
         "push %%edi\n"
-        "push %%ds\n"  //push data segment
-        "push %%es\n"  //push extra segment
+        "push %%ds\n"
+        "push %%es\n"
         :
         :
         : "memory"
