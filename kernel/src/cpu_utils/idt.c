@@ -8,7 +8,7 @@ static void set_idt_gate(int n, uint32_t handler) {
     idt[n].offset_high = (handler >> 16) & 0xFFFF;
 }
 
-void idt_init() {
+void idt_init() {//TODO add more handlers for cpu interupts
     idtp.limit = sizeof(idt) - 1;
     idtp.base = (uint32_t)&idt;
 
