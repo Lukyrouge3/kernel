@@ -40,9 +40,9 @@ void get_cpu_registers(cpu_registers_t *regs) {
         "pushf\n"                // Push EFLAGS onto stack
         "pop %%eax\n"            // Pop EFLAGS into EAX
         "mov %%eax, %9\n"        // Save EFLAGS
-        "pop %%ebx\n"            // Restore original EBX from stack (was pushed second, so pop first)
+        "pop %%ebx\n"            // Restore original EBX from stack (was pushed second, so popped first)
         "mov %%ebx, %1\n"        // Save original EBX value
-        "pop %%eax\n"            // Restore original EAX from stack (was pushed first, so pop second)
+        "pop %%eax\n"            // Restore original EAX from stack (was pushed first, so popped second)
         "mov %%eax, %0\n"        // Save original EAX value
         : "=m"(regs->eax), "=m"(regs->ebx), "=m"(regs->ecx), "=m"(regs->edx),
           "=m"(regs->esi), "=m"(regs->edi), "=m"(regs->ebp), "=m"(regs->esp),
