@@ -12,7 +12,7 @@ void _start(void) {
     serial_init_com1();
     pic_remap();
     idt_init();
-    clear_screen();
+    vga_clear_screen();
 
     serial_printf("%s %d %X\n", "The answer is", 42, 0x2A);
     for (;;) {
