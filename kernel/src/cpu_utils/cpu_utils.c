@@ -20,25 +20,35 @@ uint16_t read_ss(void) {
 }
 
 void get_cpu_registers(cpu_registers_t *regs) {
-    __asm__ volatile("mov %%eax, %0\n"
-                     "mov %%ebx, %1\n"
-                     "mov %%ecx, %2\n"
-                     "mov %%edx, %3\n"
-                     "mov %%esi, %4\n"
-                     "mov %%edi, %5\n"
-                     "mov %%ebp, %6\n"
-                     "mov %%esp, %7\n"
-                     "call 1f\n"
-                     "1: pop %%eax\n"
-                     "mov %%eax, %8\n"
-                     "pushf\n"
-                     "pop %%eax\n"
-                     "mov %%eax, %9\n"
-                     : "=m"(regs->eax), "=m"(regs->ebx), "=m"(regs->ecx), "=m"(regs->edx),
-                       "=m"(regs->esi), "=m"(regs->edi), "=m"(regs->ebp), "=m"(regs->esp),
-                       "=m"(regs->eip), "=m"(regs->eflags)
-                     :
-                     : "eax");
+    // Save registers without modifying them.
+    // We must be careful: EAX and EBX will be used as scratch registers,
+    // so we save them to the stack first, then use them.
+    __asm__ volatile(
+        "push %%eax\n"           // Save original EAX on stack
+        "push %%ebx\n"           // Save original EBX on stack
+        "mov %%ecx, %0\n"        // Save ECX
+        "mov %%edx, %1\n"        // Save EDX
+        "mov %%esi, %2\n"        // Save ESI
+        "mov %%edi, %3\n"        // Save EDI
+        "mov %%ebp, %4\n"        // Save EBP
+        "mov %%esp, %%eax\n"     // Get current ESP
+        "add $8, %%eax\n"        // Adjust for the two pushes above
+        "mov %%eax, %5\n"        // Save adjusted ESP
+        "call 1f\n"              // Push return address (EIP) onto stack
+        "1: pop %%eax\n"         // Pop EIP into EAX
+        "mov %%eax, %6\n"        // Save EIP
+        "pushf\n"                // Push EFLAGS onto stack
+        "pop %%eax\n"            // Pop EFLAGS into EAX
+        "mov %%eax, %7\n"        // Save EFLAGS
+        "pop %%ebx\n"            // Restore EBX from stack
+        "mov %%ebx, %8\n"        // Save original EBX value
+        "pop %%eax\n"            // Restore EAX from stack
+        "mov %%eax, %9\n"        // Save original EAX value
+        : "=m"(regs->ecx), "=m"(regs->edx),
+          "=m"(regs->esi), "=m"(regs->edi), "=m"(regs->ebp), "=m"(regs->esp),
+          "=m"(regs->eip), "=m"(regs->eflags), "=m"(regs->ebx), "=m"(regs->eax)
+        :
+        : "eax", "ebx", "memory");
 }
 
 void print_cpu_registers(const cpu_registers_t *regs) {
