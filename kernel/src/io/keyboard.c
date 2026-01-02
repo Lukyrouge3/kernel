@@ -16,8 +16,6 @@ void keyboard_handler_c(void) {
     unsigned char scancode = inb(KEYBOARD_CTRL_DATA);
     if (scancode > 127)
         return; // Extended scancode, ignore for now
-    if (scancode & 0x80)
-        return; // Key released, ignore
     if (scancode_map[scancode] == '\n') {
         vga_newline();
         return;
@@ -26,6 +24,7 @@ void keyboard_handler_c(void) {
         vga_putc(scancode_map[scancode]);
 }
 
+//TODO see if we can avoid ugly asm here
 void __attribute__((naked)) irq1_handler(void) {
     __asm__ volatile("pushal\n"
                      "call keyboard_handler_c\n"
