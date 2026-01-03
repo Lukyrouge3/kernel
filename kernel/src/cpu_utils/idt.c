@@ -93,11 +93,12 @@ void isr_handler(struct registers *regs) {
 }
 
 void irq_handler(struct registers *regs) {
-    if (regs->int_no == 0x21) { // Keyboard IRQ1
-        keyboard_handler_c();
-    } else if (regs->int_no == 0x20) { // Timer IRQ0
+
+    if (regs->int_no == 0x20) { // Timer IRQ0
         // Timer tick handling can be added here
         timer_interrupt_handler();
+    } else if (regs->int_no == 0x21) { // Keyboard IRQ1
+        keyboard_handler_c();
     } else {
         serial_printf("Received IRQ: %d\n", regs->int_no);
     }
