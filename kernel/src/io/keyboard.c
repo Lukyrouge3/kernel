@@ -3,6 +3,9 @@
 #include "io/io.h"
 #include "stdlib.h"
 
+#include "io/printf/printf.h"
+
+
 static scancode_state_t scancode_state = SCANCODE_NORMAL;
 
 static const char scancode_map[128] = {
@@ -14,16 +17,26 @@ static const char scancode_map[128] = {
     // rest left 0
 };
 
+static int scancode_is_break_code(uint8_t scancode) {
+    return (scancode & 0x80) != 0;
+}
+
 void keyboard_handler_c(void) {//TODO handle break codes
     uint8_t scancode = inb(KEYBOARD_CTRL_DATA);
     if (scancode == 0xE0) {
         scancode_state = SCANCODE_EXTENDED_E0;
         return;
     }
+    if (scancode_is_break_code(scancode)) {
+        return; // Ignore break codes for now
+    }
     switch (scancode_state) {
         case SCANCODE_NORMAL:
             if (scancode_map[scancode] == '\n') {
                 vga_newline();
+            }
+            if (scancode == 0x0E) {  // Backspace
+                vga_delete();  // or vga_backspace() if you want different behavior
             }
             if (isprint(scancode_map[scancode])) {
                 vga_putc(scancode_map[scancode]);
@@ -31,9 +44,7 @@ void keyboard_handler_c(void) {//TODO handle break codes
             break;
             
         case SCANCODE_EXTENDED_E0:
-            if (scancode == 0x53) {
-                vga_delete();
-            }
+            // Handle extended scancodes if needed
             scancode_state = SCANCODE_NORMAL;
             break;
         default:
