@@ -89,3 +89,7 @@ void restore_cpu_state() {
                      :
                      : "memory");
 }
+
+void halt_cpu() {
+    __asm__ volatile("hlt");
+}
