@@ -39,7 +39,7 @@ void _start(void) {
     idt_init();
     vga_clear_screen();
 
-    usleep(1000000); // Sleep for 1 second
+    sleep(1000); // Sleep for 1 second
     serial_printf("Kernel initialized successfully!\n");
 
     for (;;) {

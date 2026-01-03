@@ -9,5 +9,5 @@
 
 void timer_init(void);
 uint64_t timer_ticks(void);
-void usleep(uint32_t usec);
+void sleep(uint32_t ms);
 void timer_interrupt_handler(void);

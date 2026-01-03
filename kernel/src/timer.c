@@ -33,13 +33,9 @@ uint64_t timer_ticks(void) {
     return result;
 }
 
-void usleep(uint32_t usec) {
+void sleep(uint32_t ms) {
     uint64_t start_ticks = timer_ticks();
-    uint64_t wait_ticks =
-        (usec * 1000) / TIMER_INTERVAL_NS; // Assuming TIMER_INTERVAL_NS is defined elsewhere
-
-    while ((timer_ticks() - start_ticks) < wait_ticks) {
-        // halt
-        halt_cpu();
+    while ((timer_ticks() - start_ticks) < ms) {
+        halt_cpu(); // Halt CPU to save power while waiting
     }
 }
