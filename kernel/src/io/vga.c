@@ -38,6 +38,16 @@ void vga_putc(const char c) {
     vga_set_cursor_pos(pos);
 }
 
+void vga_delete(void) {
+    uint16_t pos = vga_get_cursor_pos();
+    if (pos == 0) {
+        return; // At the beginning of the screen, nothing to delete
+    }
+    pos--;
+    VGA[pos] = vga_entry(' ', (uint8_t)TEXT_COLOR);
+    vga_set_cursor_pos(pos);
+}
+
 void vga_newline(void) {
     uint16_t pos = vga_get_cursor_pos();
     pos += VGA_WIDTH - (pos % VGA_WIDTH);
