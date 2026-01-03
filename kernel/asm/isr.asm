@@ -20,7 +20,7 @@ isr%1:
     jmp isr_common_stub
 %endmacro
 
-IDT:
+IDT_DEF:
     ; Définition des 32 premiers ISR (exceptions CPU)
     ISR_NOERRCODE 0   ; Division par zéro
     ISR_NOERRCODE 1   ; Debug
