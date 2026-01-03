@@ -34,7 +34,7 @@ struct registers {
 };
 
 void idt_init();
-void idt_handler(struct registers regs);
+void isr_handler(struct registers regs);
 
 extern void isr0(void);
 extern void isr1(void);

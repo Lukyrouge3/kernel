@@ -60,10 +60,6 @@ void vga_scroll(void) {
         VGA[i] = vga_entry(' ', (uint8_t)TEXT_COLOR);
     }
     /* Move cursor up one line safely */
-    if (pos >= VGA_WIDTH) {
-        pos -= VGA_WIDTH;
-    } else {
-        pos = 0;
-    }
+    pos = (pos >= VGA_WIDTH) ? (pos - VGA_WIDTH) : 0;
     vga_set_cursor_pos(pos);
 }

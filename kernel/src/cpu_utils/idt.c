@@ -65,7 +65,7 @@ void idt_init() { // TODO add more handlers for cpu interrupts
     __asm__ volatile("sti"); // Enable interrupts
 }
 
-void idt_handler(struct registers regs) {
+void isr_handler(struct registers regs) {
     serial_printf("Received interrupt: %d\n", regs.int_no);
     // Vous pouvez ajouter votre gestion d'interruptions ici
     // Par exemple, afficher un message d'erreur
