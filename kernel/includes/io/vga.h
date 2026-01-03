@@ -1,5 +1,4 @@
-#ifndef IO_VGA_H
-#define IO_VGA_H
+#pragma once
 #include <stdint.h>
 
 #define VGA_HEIGHT 25
@@ -20,4 +19,3 @@ void vga_clear_screen(void);
 void vga_putc(const char c);
 void vga_newline(void);
 void vga_scroll(void);
-#endif

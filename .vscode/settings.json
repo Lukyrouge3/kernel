@@ -2,5 +2,6 @@
     "editor.formatOnSave": true,
     "[c]": {
         "editor.defaultFormatter": "ms-vscode.cpptools"
-    }
+    },
+    "C_Cpp.default.compilerPath": "/usr/bin/gcc-13"
 }
