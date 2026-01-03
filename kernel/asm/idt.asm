@@ -8,7 +8,7 @@ isr%1:
     cli
     push dword 0          ; Code d'erreur factice
     push dword %1         ; Numéro d'interruption
-    jmp isr_common_stub
+    jmp idt_common_stub
 %endmacro
 
 ; Macro pour créer un ISR avec code d'erreur
@@ -17,7 +17,7 @@ global isr%1
 isr%1:
     cli
     push dword %1         ; Numéro d'interruption
-    jmp isr_common_stub
+    jmp idt_common_stub
 %endmacro
 
 %macro IRQ 1
@@ -25,11 +25,11 @@ global irq%1
 irq%1:
     cli
     push dword %1         ; Numéro d'interruption
-    jmp isr_common_stub
+    jmp idt_common_stub
 %endmacro
 
 
-ISR:
+IDT:
     ; Définition des 32 premiers ISR (exceptions CPU)
     ISR_NOERRCODE 0   ; Division par zéro
     ISR_NOERRCODE 1   ; Debug
@@ -66,9 +66,9 @@ ISR:
 
     IRQ 33 ; Keyboard interrupt
 
-extern isr_handler
+extern idt_handler
 
-isr_common_stub:
+idt_common_stub:
     pushad
 
     mov ax, ds
@@ -80,7 +80,7 @@ isr_common_stub:
     mov fs, ax
     mov gs, ax
 
-    call isr_handler
+    call idt_handler
 
     pop eax
     mov ds, ax
