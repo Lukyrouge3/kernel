@@ -76,10 +76,10 @@ void idt_init() { // TODO add more handlers for cpu interrupts
     idt_set_gate(46, (uint32_t)irq14, IDT_FLAG_GATE_32BIT_INT | IDT_FLAG_RING0);
     idt_set_gate(47, (uint32_t)irq15, IDT_FLAG_GATE_32BIT_INT | IDT_FLAG_RING0);
 
-    timer_init();
-
     // Load IDT into CPU
     __asm__ volatile("lidt (%0)" : : "r"(&idtp));
+
+    timer_init();
     __asm__ volatile("sti"); // Enable interrupts
 }
 

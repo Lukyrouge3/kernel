@@ -20,6 +20,13 @@ void timer_init(void) {
     outb(PIT_CHANNEL0_DATA, (divisor >> 8) & 0xFF);
 }
 
+/**
+ * Timer interrupt callback.
+ *
+ * This function is invoked from the hardware timer IRQ handler and thus runs
+ * in interrupt context. It must remain interrupt-safe and perform only
+ * minimal, non-blocking work (e.g., updating simple counters).
+ */
 void timer_interrupt_handler() {
     ticks++;
 }
@@ -33,9 +40,14 @@ uint64_t timer_ticks(void) {
     return result;
 }
 
+// Busy-wait until the specified number of timer ticks has elapsed.
+// Note: The parameter is named 'ms' for historical reasons. If TIMER_FREQUENCY_HZ
+//       is configured to 1000 Hz, one tick is approximately 1 ms; otherwise the
+//       duration is in timer ticks, not strict milliseconds.
 void sleep(uint32_t ms) {
     uint64_t start_ticks = timer_ticks();
-    while ((timer_ticks() - start_ticks) < ms) {
+    uint64_t ticks_to_wait = ((uint64_t)ms * TIMER_FREQUENCY_HZ) / 1000;
+    while ((timer_ticks() - start_ticks) < ticks_to_wait) {
         halt_cpu(); // Halt CPU to save power while waiting
     }
 }
