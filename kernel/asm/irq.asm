@@ -35,8 +35,10 @@ extern irq_handler
 irq_common_stub:
     pushad
 
-    push ds             ; Save only DS
-    mov ax, 0x10        ; Load kernel data segment
+    mov ax, ds
+    push eax    ; Sauvegarde ds
+
+    mov ax, 0x10    ; Charge le segment de données kernel
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -48,12 +50,13 @@ irq_common_stub:
 
     add esp, 4 ; skip structure pointer
 
-    pop ds
-    mov ax, ds          ; Restore DS
-    mov es, ax          ; Copy DS to other segments
+    pop eax
+    mov ds, ax
+    mov es, ax
     mov fs, ax
     mov gs, ax
 
     popad
     add esp, 8 ; skip error code and interrupt number
+    sti
     iret

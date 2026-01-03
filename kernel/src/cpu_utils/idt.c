@@ -99,4 +99,7 @@ void irq_handler(struct registers *regs) {
 
     // send EOI to PICs
     outb(MASTER_PIC_CTRL_ADDR, 0x20); // EOI for master PIC
+    if (regs->int_no >= 0x28) {
+        outb(SLAVE_PIC_CTRL_ADDR, 0x20); // EOI for slave PIC (IRQs 8-15)
+    }
 }

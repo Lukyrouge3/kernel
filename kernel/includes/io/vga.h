@@ -17,6 +17,6 @@ uint16_t vga_get_cursor_pos(void);
 void vga_set_cursor_pos(uint16_t pos);
 void vga_clear_screen(void);
 void vga_putc(const char c);
-void vga_delete(void);
+void vga_backspace(void);
 void vga_newline(void);
 void vga_scroll(void);
