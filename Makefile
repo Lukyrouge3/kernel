@@ -19,6 +19,15 @@ CFLAGS=-std=c11 -O2 -Wall -Wextra \
        -m32 -I $(INC_DIR)
 LDFLAGS=-T kernel/linker.ld -nostdlib
 
+# Calculate kernel sectors (done after kernel.bin exists)
+define calc_sectors
+$(shell if [ -f $(BUILD_DIR)/kernel.bin ]; then \
+    echo $$(( ($$(stat -c%s $(BUILD_DIR)/kernel.bin) + 511) / 512 )); \
+else \
+    echo 20; \
+fi)
+endef
+
 .PHONY: all clean run compile_boot build_disk lint
 
 all: run
@@ -32,8 +41,10 @@ lint:
 		--suppress=unusedFunction:kernel/src/main.c \
 		$(SRCS)
 
-compile_boot: $(BUILD_DIR)
-	nasm -f bin boot/boot.asm -o $(BUILD_DIR)/boot.bin
+compile_boot: $(BUILD_DIR) kernel.bin
+	$(eval KERNEL_SECTORS := $(call calc_sectors))
+	@echo "Compiling bootloader with KERNEL_SECTORS=$(KERNEL_SECTORS)"
+	nasm -f bin -dKERNEL_SECTORS=$(KERNEL_SECTORS) boot/boot.asm -o $(BUILD_DIR)/boot.bin
 
 build_disk: compile_boot kernel.bin
 	dd if=/dev/zero of=$(BUILD_DIR)/floppy.img bs=512 count=2880
