@@ -4,13 +4,15 @@ LD=$(TARGET)-ld
 
 # Source directories
 SRC_DIR=kernel/src
+ASM_DIR=kernel/asm
 INC_DIR=kernel/includes
 BUILD_DIR=build
 
 # Find all C source files recursively
 SRCS=$(shell find $(SRC_DIR) -name '*.c')
 # Convert source paths to object paths in build directory
-OBJS=$(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
+OBJS=$(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS)) \
+	 $(patsubst $(ASM_DIR)/%.asm,$(BUILD_DIR)/%.o,$(shell find $(ASM_DIR) -name '*.asm'))
 
 CFLAGS=-std=c11 -O2 -Wall -Wextra \
        -ffreestanding -fno-stack-protector -fno-pic -fno-pie \
@@ -48,6 +50,10 @@ run: build_disk
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/%.o: $(ASM_DIR)/%.asm | $(BUILD_DIR)
+	@mkdir -p $(dir $@)
+	nasm -f elf32 $< -o $@
 
 kernel.elf: $(OBJS) kernel/linker.ld
 	$(LD) $(LDFLAGS) $(OBJS) -o $(BUILD_DIR)/$@

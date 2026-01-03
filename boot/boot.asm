@@ -22,7 +22,7 @@ loader:
 
     ; Load kernel from disk (sector 2 onwards) to 0x1000:0x0000 (0x10000)
     mov ah, 0x02        ; Read sectors function
-    mov al, 9          ; Number of sectors to read (adjust based on kernel size)
+    mov al, 20          ; Number of sectors to read (adjust based on kernel size)
     mov ch, 0           ; Cylinder 0
     mov cl, 2           ; Start from sector 2 (sector 1 is index 1, but CHS is 1-indexed)
     mov dh, 0           ; Head 0

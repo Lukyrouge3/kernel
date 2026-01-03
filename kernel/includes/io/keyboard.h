@@ -6,3 +6,4 @@
 #define KEYBOARD_CTRL_DATA 0x60
 
 void __attribute__((naked)) irq1_handler(void);
+void keyboard_handler_c(void);
