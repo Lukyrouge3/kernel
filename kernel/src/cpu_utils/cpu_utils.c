@@ -93,3 +93,21 @@ void restore_cpu_state() {
 void halt_cpu() {
     __asm__ volatile("hlt");
 }
+
+uint32_t read_eflags(void) {
+    uint32_t flags;
+    __asm__ volatile("pushfl; popl %0" : "=r"(flags));
+    return flags;
+}
+
+void write_eflags(uint32_t flags) {
+    __asm__ volatile("pushl %0; popfl" : : "r"(flags) : "cc");
+}
+
+void disable_interrupts(void) {
+    __asm__ volatile("cli");
+}
+
+void enable_interrupts(void) {
+    __asm__ volatile("sti");
+}

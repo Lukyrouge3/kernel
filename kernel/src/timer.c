@@ -25,7 +25,12 @@ void timer_interrupt_handler() {
 }
 
 uint64_t timer_ticks(void) {
-    return ticks;
+    // Disable interrupts to ensure atomic read of 64-bit value on 32-bit x86
+    uint32_t flags = read_eflags();
+    disable_interrupts();
+    uint64_t result = ticks;
+    write_eflags(flags);
+    return result;
 }
 
 void usleep(uint32_t usec) {
@@ -35,6 +40,6 @@ void usleep(uint32_t usec) {
 
     while ((timer_ticks() - start_ticks) < wait_ticks) {
         // halt
-        // halt_cpu();
+        halt_cpu();
     }
 }

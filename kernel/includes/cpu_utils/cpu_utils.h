@@ -25,3 +25,8 @@ void save_cpu_state();
 void restore_cpu_state();
 
 void halt_cpu();
+
+uint32_t read_eflags(void);
+void write_eflags(uint32_t flags);
+void disable_interrupts(void);
+void enable_interrupts(void);
