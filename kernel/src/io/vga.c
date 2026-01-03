@@ -39,7 +39,7 @@ void vga_putc(const char c) {
     vga_set_cursor_pos(pos);
 }
 
-void vga_delete(void) {
+void vga_backspace(void) {
     uint16_t pos = vga_get_cursor_pos();
     if (pos == 0) {
         return; // At the beginning of the screen, nothing to delete
