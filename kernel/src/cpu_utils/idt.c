@@ -80,26 +80,25 @@ void idt_init() { // TODO add more handlers for cpu interrupts
     __asm__ volatile("sti"); // Enable interrupts
 }
 
-void isr_handler(struct registers regs) {
-    serial_printf("Received interrupt: %d\n", regs.int_no);
+void isr_handler(struct registers *regs) {
+    serial_printf("Received interrupt: %d\n", regs->int_no);
     // Vous pouvez ajouter votre gestion d'interruptions ici
     // Par exemple, afficher un message d'erreur
-    if (regs.int_no < 32) {
-        PANIC("CPU Exception: Interrupt Number %d, err_code %d", regs.int_no, regs.err_code);
+    if (regs->int_no < 32) {
+        PANIC("CPU Exception: Interrupt Number %d, err_code %d", regs->int_no, regs->err_code);
     }
 }
 
-void irq_handler(struct registers regs) {
-    if (regs.int_no == 0x21) { // Keyboard IRQ1
+void irq_handler(struct registers *regs) {
+    if (regs->int_no == 0x21) { // Keyboard IRQ1
         keyboard_handler_c();
     }
     else {
-        serial_printf("Received IRQ: %d\n", regs.int_no);
-        return;
+        serial_printf("Received IRQ: %d\n", regs->int_no);
     }
 
     // send EOI to PICs
     outb(MASTER_PIC_CTRL_ADDR, 0x20); // EOI for master PIC
-    if (regs.int_no >= 0x28)// IRQs from slave PIC
+    if (regs->int_no >= 0x28)// IRQs from slave PIC
         outb(SLAVE_PIC_CTRL_ADDR, 0x20); // EOI for slave PIC
 }

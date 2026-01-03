@@ -7,7 +7,7 @@ global irq%1
 irq%1:
     cli
     push dword 0          ; Code d'erreur factice
-    push dword %1         ; Numéro d'interruption
+    push dword (0x20 + %1); Numéro d'interruption
     jmp irq_common_stub
 %endmacro
 
@@ -35,24 +35,25 @@ extern irq_handler
 irq_common_stub:
     pushad
 
-    mov ax, ds
-    push eax    ; Sauvegarde ds
-
-    mov ax, 0x10    ; Charge le segment de données kernel
+    push ds             ; Save only DS
+    mov ax, 0x10        ; Load kernel data segment
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
 
+    push esp          ; Push pointer to registers struct
+
     call irq_handler
 
-    pop eax
-    mov ds, ax
-    mov es, ax
+    add esp, 4 ; skip structure pointer
+
+    pop ds
+    mov ax, ds          ; Restore DS
+    mov es, ax          ; Copy DS to other segments
     mov fs, ax
     mov gs, ax
 
     popad
-    add esp, 8  ; Skip 8 bytes (error code + intno)
-    sti
+    add esp, 8 ; skip error code and interrupt number
     iret
