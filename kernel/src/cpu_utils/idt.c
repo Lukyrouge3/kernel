@@ -92,8 +92,7 @@ void isr_handler(struct registers *regs) {
 void irq_handler(struct registers *regs) {
     if (regs->int_no == 0x21) { // Keyboard IRQ1
         keyboard_handler_c();
-    }
-    else {
+    } else {
         serial_printf("Received IRQ: %d\n", regs->int_no);
     }
 

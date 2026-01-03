@@ -34,7 +34,7 @@ void keyboard_handler_c(void) {
             vga_putc(scancode_map[scancode]);
         } else if (scancode_map[scancode] == '\n') {
             vga_newline();
-        } else if (scancode == 0x0E) { // Backspace
+        } else if (scancode_map[scancode] == '\b') { // Backspace
             vga_backspace();
         }
         break;
