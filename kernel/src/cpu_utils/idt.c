@@ -3,6 +3,7 @@
 #include "io/pic.h"
 #include "io/printf/printf.h"
 #include "panic.h"
+#include "timer.h"
 
 static struct idt_entry idt[256];
 static struct idt_ptr idtp;
@@ -77,6 +78,8 @@ void idt_init() { // TODO add more handlers for cpu interrupts
 
     // Load IDT into CPU
     __asm__ volatile("lidt (%0)" : : "r"(&idtp));
+
+    timer_init();
     __asm__ volatile("sti"); // Enable interrupts
 }
 
@@ -92,6 +95,9 @@ void isr_handler(struct registers *regs) {
 void irq_handler(struct registers *regs) {
     if (regs->int_no == 0x21) { // Keyboard IRQ1
         keyboard_handler_c();
+    } else if (regs->int_no == 0x20) { // Timer IRQ0
+        // Timer tick handling can be added here
+        timer_interrupt_handler();
     } else {
         serial_printf("Received IRQ: %d\n", regs->int_no);
     }

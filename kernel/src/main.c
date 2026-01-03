@@ -5,6 +5,7 @@
 #include "io/serial.h"
 #include "io/vga.h"
 #include "panic.h"
+#include "timer.h"
 #include <stdint.h>
 
 void _start(void) __attribute__((section(".init")));
@@ -37,6 +38,9 @@ void _start(void) {
     pic_remap();
     idt_init();
     vga_clear_screen();
+
+    sleep(1000); // Sleep for 1 second
+    serial_printf("Kernel initialized successfully!\n");
 
     for (;;) {
     }
