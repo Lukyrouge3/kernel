@@ -24,6 +24,6 @@ void pic_remap(void) {
                                             // shit was used for older cpus
     outb(SLAVE_PIC_CTRL_DATA, 0b00000001);  // same
 
-    outb(MASTER_PIC_CTRL_DATA, 0); // see x86 Assembly/Programmable Interrupt Controller
-    outb(SLAVE_PIC_CTRL_DATA, 0);  // see x86 Assembly/Programmable Interrupt Controller
+    outb(MASTER_PIC_CTRL_DATA, 0b00000000); // see x86 Assembly/Programmable Interrupt Controller
+    outb(SLAVE_PIC_CTRL_DATA, 0b00000000);  // see x86 Assembly/Programmable Interrupt Controller
 }
