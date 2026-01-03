@@ -1,6 +1,7 @@
 #include "io/vga.h"
 #include "io/io.h"
 
+
 static volatile uint16_t *const VGA = (uint16_t *)0xB8000;
 static uint16_t vga_entry(char c, uint8_t color) {
     return (uint16_t)c | ((uint16_t)color << 8);
@@ -38,6 +39,16 @@ void vga_putc(const char c) {
     vga_set_cursor_pos(pos);
 }
 
+void vga_backspace(void) {
+    uint16_t pos = vga_get_cursor_pos();
+    if (pos == 0) {
+        return; // At the beginning of the screen, nothing to delete
+    }
+    pos--;
+    VGA[pos] = vga_entry(' ', (uint8_t)TEXT_COLOR);
+    vga_set_cursor_pos(pos);
+}
+
 void vga_newline(void) {
     uint16_t pos = vga_get_cursor_pos();
     pos += VGA_WIDTH - (pos % VGA_WIDTH);
@@ -60,10 +71,6 @@ void vga_scroll(void) {
         VGA[i] = vga_entry(' ', (uint8_t)TEXT_COLOR);
     }
     /* Move cursor up one line safely */
-    if (pos >= VGA_WIDTH) {
-        pos -= VGA_WIDTH;
-    } else {
-        pos = 0;
-    }
+    pos = (pos >= VGA_WIDTH) ? (pos - VGA_WIDTH) : 0;
     vga_set_cursor_pos(pos);
 }
