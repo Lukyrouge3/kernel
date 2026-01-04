@@ -3,6 +3,11 @@
 #include "panic.h"
 #include <stdint.h>
 
+uint32_t _memory_size = 0;
+uint32_t _used_blocks = 0;
+uint32_t _max_blocks = 0;
+uint32_t *_memory_map = 0;
+
 void check_memory_map(void) {
     uint16_t entry_count = *(uint16_t *)0x7FFE;
     struct E820Entry *memory_map = (struct E820Entry *)0x8000;
@@ -40,4 +45,22 @@ void check_memory_map(void) {
             serial_printf("Length=0x%x, Type=%d\n", len_lo, memory_map[i].type);
         }
     }
+}
+
+void pmm_init(uint32_t bitmap_location) {
+    struct E820Entry *memory_map = (struct E820Entry *)0x8000;
+
+    _memory_size = memory_map[3].length;
+    _max_blocks = _memory_size / PMM_BITMAP_BLOCK_SIZE;
+    _memory_map = (uint32_t *)bitmap_location;
+
+    serial_printf("Location of PMM bitmap: 0x%x\n", bitmap_location);
+
+    // // Clear the memory map
+    for (uint32_t i = 0; i < (_max_blocks / 32) + 1; i++) {
+        _memory_map[i] = 0xf;
+        // serial_printf("PMM bitmap[0x%x] (0x%x) = 0x%x\n", i, &_memory_map[i], _memory_map[i]);
+    }
+
+    serial_printf("PMM initialized: %d KB total, %d blocks\n", _memory_size / 1024, _max_blocks);
 }

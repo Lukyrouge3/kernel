@@ -45,6 +45,12 @@ void _start(void) {
 
     check_memory_map();
 
+    uint16_t kernel_sectors = *(uint16_t *)0x7FFC;
+    serial_printf("Kernel loaded: %d sectors\n", kernel_sectors);
+
+    // Place bitmap at 1MB mark (well above kernel and its data)
+    pmm_init(0x100000);
+
     for (;;) {
     }
 }
