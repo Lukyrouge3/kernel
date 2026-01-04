@@ -4,6 +4,7 @@
 #include "io/printf/printf.h"
 #include "io/serial.h"
 #include "io/vga.h"
+#include "memory.h"
 #include "panic.h"
 #include "timer.h"
 #include <stdint.h>
@@ -39,8 +40,10 @@ void _start(void) {
     idt_init();
     vga_clear_screen();
 
-    sleep(1000); // Sleep for 1 second
+    // sleep(1000); // Sleep for 1 second
     serial_printf("Kernel initialized successfully!\n");
+
+    check_memory_map();
 
     for (;;) {
     }
