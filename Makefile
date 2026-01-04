@@ -55,7 +55,7 @@ build_disk: compile_boot kernel.bin
 
 run: build_disk
 	clear
-	qemu-system-i386 -fda $(BUILD_DIR)/floppy.img -boot a -serial stdio
+	qemu-system-i386 -m 4G -fda $(BUILD_DIR)/floppy.img -boot a -serial stdio
 
 # Pattern rule for compiling C files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
