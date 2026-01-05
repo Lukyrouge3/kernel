@@ -1,6 +1,6 @@
-#include "io/keyboard.h"
+#include "io/hardware/keyboard.h"
 #include "cpu_utils/cpu_utils.h"
-#include "io/io.h"
+#include "io/io_utils.h"
 #include "stdlib.h"
 
 static scancode_state_t scancode_state = SCANCODE_NORMAL;
@@ -18,7 +18,7 @@ static int scancode_is_break_code(uint8_t scancode) {
     return (scancode & 0x80) != 0;
 }
 
-void keyboard_handler_c(void) {
+void keyboard_handler(void) {
     uint8_t scancode = inb(KEYBOARD_CTRL_DATA);
     if (scancode == 0xE0) {
         scancode_state = SCANCODE_EXTENDED_E0;

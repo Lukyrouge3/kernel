@@ -10,4 +10,4 @@ typedef enum {
     SCANCODE_EXTENDED_E0
 } scancode_state_t;
 
-void keyboard_handler_c(void);
+void keyboard_handler(void);

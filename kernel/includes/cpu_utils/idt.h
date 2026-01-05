@@ -1,6 +1,6 @@
 #pragma once
 
-#include "io/keyboard.h"
+#include "io/hardware/keyboard.h"
 #include <stdint.h>
 
 #define IDT_FLAG_GATE_TASK 0x5

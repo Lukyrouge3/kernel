@@ -1,6 +1,6 @@
 #include "timer.h"
 #include "cpu_utils/cpu_utils.h"
-#include "io/io.h"
+#include "io/io_utils.h"
 
 // PIT ports
 #define PIT_CHANNEL0_DATA 0x40

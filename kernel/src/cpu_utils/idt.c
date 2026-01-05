@@ -1,5 +1,6 @@
 #include "cpu_utils/idt.h"
-#include "io/keyboard.h"
+#include "io/hardware/keyboard.h"
+#include "io/hardware/mouse.h"
 #include "io/pic.h"
 #include "io/printf/printf.h"
 #include "panic.h"
@@ -94,13 +95,20 @@ void isr_handler(struct registers *regs) {
 
 void irq_handler(struct registers *regs) {
 
-    if (regs->int_no == 0x20) { // Timer IRQ0
-        // Timer tick handling can be added here
+    switch (regs->int_no) {
+    case 0x20: // Timer IRQ0
         timer_interrupt_handler();
-    } else if (regs->int_no == 0x21) { // Keyboard IRQ1
-        keyboard_handler_c();
-    } else {
+        break;
+    case 0x21: // Keyboard IRQ1
+        keyboard_handler();
+        break;
+    // SLAVE PIC IRQs can be handled here if needed
+    case 0x2C: // Mouse IRQ12
+        mouse_handler();
+        break;
+    default:
         serial_printf("Received IRQ: %d\n", regs->int_no);
+        break;
     }
 
     // send EOI to PICs

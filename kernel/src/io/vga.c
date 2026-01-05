@@ -1,6 +1,5 @@
 #include "io/vga.h"
-#include "io/io.h"
-
+#include "io/io_utils.h"
 
 static volatile uint16_t *const VGA = (uint16_t *)0xB8000;
 static uint16_t vga_entry(char c, uint8_t color) {
