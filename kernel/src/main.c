@@ -6,6 +6,7 @@
 #include "io/vga.h"
 #include "panic.h"
 #include "timer.h"
+#include "io/hardware/hardware.h"
 #include <stdint.h>
 
 void _start(void) __attribute__((section(".init")));
@@ -35,6 +36,7 @@ void _start(void) {
     serial_init_com1();
     assert_protected_mode();
     assert_flat_segments();
+    init_hardware_io();
     pic_remap();
     idt_init();
     vga_clear_screen();
