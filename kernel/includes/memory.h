@@ -23,6 +23,7 @@ void check_memory_map(void);
 
 void pmm_init(uint32_t bitmap_location);
 void pmm_init_region(uint32_t base, size_t length);
+void pmm_deinit_region(uint32_t base, size_t length);
 int pmm_get_block_count();
 void *pmm_alloc_block();
 void *pmm_alloc_blocks(uint32_t size);

@@ -31,7 +31,6 @@ static void assert_flat_segments(void) {
     */
 }
 
-// cppcheck-suppress unusedFunction
 void _start(void) {
     serial_init_com1();
     assert_protected_mode();
@@ -48,12 +47,7 @@ void _start(void) {
     uint16_t kernel_sectors = *(uint16_t *)0x7FFC;
     serial_printf("Kernel loaded: %d sectors\n", kernel_sectors);
 
-    // Place bitmap at 1MB mark (well above kernel and its data)
-    pmm_init(0x100000);
-
-    void *test_alloc = pmm_alloc_block();
-    serial_printf("Allocated block at: 0x%x, total blocks used: %d\n", (uint32_t)test_alloc,
-                  _pmm_used_blocks);
+    pmm_init(0x186A0); // Arbitrary location (100KB) from start of memory for PMM bitmap
 
     for (;;) {
         halt_cpu();

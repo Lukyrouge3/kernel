@@ -62,12 +62,14 @@ void pmm_init(uint32_t bitmap_location) {
     serial_printf("Location of PMM bitmap: 0x%x\n", bitmap_location);
 
     // By default we mark all memory as used
-    memset(_pmm_memory_map, 0xf,
+    memset(_pmm_memory_map, 0xff,
            pmm_get_block_count() / 8); // We divide by 8 because memset works in bytes
     _pmm_used_blocks = pmm_get_block_count();
 
     serial_printf("PMM initialized: %d KB total, %d blocks\n", _pmm_memory_size / 1024,
                   _pmm_max_blocks);
+
+    pmm_init_region(_pmm_physical_memory_base, _pmm_memory_size);
 }
 
 void mmap_set(int bit) {
@@ -96,7 +98,7 @@ int pmm_get_block_count() {
 }
 
 void pmm_init_region(uint32_t base, size_t length) {
-    uint32_t start_block = base / PMM_BITMAP_BLOCK_SIZE;
+    uint32_t start_block = (base - _pmm_physical_memory_base) / PMM_BITMAP_BLOCK_SIZE;
     uint32_t block_count = (length + PMM_BITMAP_BLOCK_SIZE - 1) / PMM_BITMAP_BLOCK_SIZE;
 
     for (uint32_t i = 0; i < block_count; i++) {
@@ -204,4 +206,14 @@ void pmm_free_blocks(void *block, uint32_t size) {
 
 int pmm_get_used_blocks() {
     return _pmm_used_blocks;
+}
+
+void pmm_deinit_region(uint32_t base, size_t length) {
+    uint32_t start_block = (base - _pmm_physical_memory_base) / PMM_BITMAP_BLOCK_SIZE;
+    uint32_t block_count = (length + PMM_BITMAP_BLOCK_SIZE - 1) / PMM_BITMAP_BLOCK_SIZE;
+
+    for (uint32_t i = 0; i < block_count; i++) {
+        mmap_set(start_block + i);
+        _pmm_used_blocks++;
+    }
 }
