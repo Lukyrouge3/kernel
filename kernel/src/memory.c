@@ -4,10 +4,11 @@
 #include "stdlib.h"
 #include <stdint.h>
 
-uint32_t _pmm_memory_size = 0;
-uint32_t _pmm_used_blocks = 0;
-uint32_t _pmm_max_blocks = 0;
-uint32_t *_pmm_memory_map = 0;
+static uint32_t _pmm_memory_size = 0;
+static uint32_t _pmm_used_blocks = 0;
+static uint32_t _pmm_max_blocks = 0;
+static uint32_t *_pmm_memory_map = 0;
+static uint32_t _pmm_physical_memory_base = 0;
 
 void check_memory_map(void) {
     uint16_t entry_count = *(uint16_t *)0x7FFE;
@@ -199,4 +200,8 @@ void pmm_free_blocks(void *block, uint32_t size) {
         mmap_unset(block_num + i);
     }
     _pmm_used_blocks -= size;
+}
+
+int pmm_get_used_blocks() {
+    return _pmm_used_blocks;
 }
