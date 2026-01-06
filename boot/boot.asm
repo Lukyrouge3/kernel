@@ -98,7 +98,7 @@ pm_entry:
 
     mov esp, 0x90000   ; Set stack to 576KB (well above kernel and bitmap)
 
-    cli ; [CLear InteruptFlag] Clear interupt flags and set to 0
+    cli ; [CLear InterruptFlag] Clear interrupt flags and set to 0
     jmp 0x10000
 
 gdt_table:
