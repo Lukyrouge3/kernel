@@ -22,9 +22,12 @@ static void *_pmm_align_address(uint32_t addr) {
     return (void *)(addr & ~(PMM_BITMAP_BLOCK_SIZE - 1));
 }
 
+//! Validate and print the E820 memory map from BIOS
+//! @note Reads from fixed BIOS locations (0x7FFE for count, 0x8000 for entries)
+//! @note Asserts that all entries are valid (type 1-5, non-zero length)
 void check_memory_map(void) {
-    uint16_t entry_count = *(uint16_t *)0x7FFE;
-    struct E820Entry *memory_map = (struct E820Entry *)0x8000;
+    entry_count = *(uint16_t *)0x7FFE;
+    memory_map = (struct E820Entry *)0x8000;
 
     // Validate entry count is sane
     ASSERT(entry_count > 0);
@@ -58,10 +61,11 @@ void check_memory_map(void) {
     }
 }
 
+//! Initialize the Physical Memory Manager
+//! @param bitmap_location Physical address where the bitmap will be stored
+//! @note Marks all memory as used by default, then marks the first entry as free
+//! @note Currently only manages the 4th E820 entry (limitation for future improvement)
 void pmm_init(uint32_t bitmap_location) {
-    struct E820Entry *memory_map = (struct E820Entry *)0x8000;
-    uint16_t entry_count = *(uint16_t *)0x7FFE;
-
     ASSERT(entry_count >= 4);
     ASSERT(memory_map[3].type == 1);
     ASSERT(memory_map[3].length <= UINT32_MAX); // To avoid 32-bit overflow in _pmm_memory_size
@@ -87,6 +91,9 @@ void pmm_init(uint32_t bitmap_location) {
     pmm_init_region(_pmm_physical_memory_base, _pmm_memory_size);
 }
 
+//! Set a bit in the memory bitmap to mark a block as used
+//! @param bit The block index to mark as used
+//! Prints a warning if the bit is out of range
 void mmap_set(int bit) {
     if (bit < 0 || bit >= (int)pmm_get_block_count()) {
         serial_printf("mmap_set: Attempt to set bit out of range %d!\n", bit);
@@ -99,6 +106,9 @@ void mmap_set(int bit) {
     _pmm_memory_map[bitmap_index] |= (1 << block_bit);
 }
 
+//! Clear a bit in the memory bitmap to mark a block as free
+//! @param bit The block index to mark as free
+//! Prints a warning if the bit is out of range
 void mmap_unset(int bit) {
     if (bit < 0 || bit >= (int)pmm_get_block_count()) {
         serial_printf("mmap_unset: Attempt to unset bit out of range %d!\n", bit);
@@ -111,6 +121,9 @@ void mmap_unset(int bit) {
     _pmm_memory_map[bitmap_index] &= ~(1 << block_bit);
 }
 
+//! Test if a bit in the memory bitmap is set (block is used)
+//! @param bit The block index to test
+//! @return true if the block is marked as used, false if free or out of range
 bool mmap_test(int bit) {
     if (bit < 0 || bit >= (int)pmm_get_block_count()) {
         serial_printf("mmap_test: Attempt to test bit out of range %d!\n", bit);
@@ -127,6 +140,10 @@ int pmm_get_block_count() {
     return _pmm_max_blocks;
 }
 
+//! Mark a memory region as free and available for allocation
+//! @param base Absolute physical address (must be block-aligned)
+//! @param length Size of the region in bytes
+//! @note Asserts that the region is within managed memory and properly aligned
 void pmm_init_region(uint32_t base, size_t length) {
     ASSERT(_pmm_check_address_range(base, length));
     ASSERT((base % PMM_BITMAP_BLOCK_SIZE) == 0);
@@ -167,6 +184,11 @@ int32_t mmap_first_free() {
     return -1; // No free blocks
 }
 
+
+//! Find the first contiguous sequence of free blocks of a given size
+//! @param size Number of contiguous blocks needed
+//! @return Block index of the start of the free region, or -1 if not found
+//! @note Uses a simple first-fit algorithm
 int32_t mmap_first_free_sized(uint32_t size) {
     uint32_t free_count = 0;
     uint32_t start_bit = 0;
@@ -188,6 +210,8 @@ int32_t mmap_first_free_sized(uint32_t size) {
     return -1; // No suitable block found
 }
 
+//! Allocate a single 4KB memory block
+//! @return Physical address of the allocated block, or NULL if no free blocks
 void *pmm_alloc_block() {
     if (pmm_get_used_blocks() >= pmm_get_block_count()) { // No free blocks
         return NULL;
@@ -209,6 +233,9 @@ void *pmm_alloc_block() {
     return (void *)address;
 }
 
+//! Allocate multiple contiguous 4KB memory blocks
+//! @param size Number of blocks to allocate
+//! @return Physical address of the first allocated block, or NULL if not enough contiguous free blocks
 void *pmm_alloc_blocks(uint32_t size) {
     if (size == 0) {
         return NULL;
@@ -236,6 +263,9 @@ void *pmm_alloc_blocks(uint32_t size) {
     return (void *)address;
 }
 
+//! Free a single allocated memory block
+//! @param block Physical address of the block to free (will be aligned down to block boundary)
+//! @note Prints a warning if the block is outside managed memory or already free
 void pmm_free_block(void *block) {
     uint32_t addr = (uint32_t)_pmm_align_address((uint32_t)block);
     if (!_pmm_check_address(addr)) {
@@ -253,6 +283,10 @@ void pmm_free_block(void *block) {
     _pmm_used_blocks--;
 }
 
+//! Free multiple contiguous allocated memory blocks
+//! @param block Physical address of the first block to free (will be aligned down to block boundary)
+//! @param size Number of blocks to free
+//! @note Prints a warning if any block is outside managed memory or already free
 void pmm_free_blocks(void *block, uint32_t size) {
     uint32_t addr = (uint32_t)_pmm_align_address((uint32_t)block);
     if (!_pmm_check_address_range(addr, size * PMM_BITMAP_BLOCK_SIZE)) {
@@ -277,6 +311,11 @@ int pmm_get_used_blocks() {
     return _pmm_used_blocks;
 }
 
+//! Mark a memory region as used and unavailable for allocation
+//! @param base Absolute physical address (must be block-aligned)
+//! @param length Size of the region in bytes
+//! @note Asserts that the region is within managed memory and properly aligned
+//! @note Inverse of pmm_init_region - marks blocks as used
 void pmm_deinit_region(uint32_t base, size_t length) {
     // Since it's supposed to be a system call we can assert
     ASSERT(_pmm_check_address_range(base, length));
