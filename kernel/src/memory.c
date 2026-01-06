@@ -184,7 +184,6 @@ int32_t mmap_first_free() {
     return -1; // No free blocks
 }
 
-
 //! Find the first contiguous sequence of free blocks of a given size
 //! @param size Number of contiguous blocks needed
 //! @return Block index of the start of the free region, or -1 if not found
@@ -235,7 +234,8 @@ void *pmm_alloc_block() {
 
 //! Allocate multiple contiguous 4KB memory blocks
 //! @param size Number of blocks to allocate
-//! @return Physical address of the first allocated block, or NULL if not enough contiguous free blocks
+//! @return Physical address of the first allocated block, or NULL if not enough contiguous free
+//! blocks
 void *pmm_alloc_blocks(uint32_t size) {
     if (size == 0) {
         return NULL;
@@ -284,7 +284,8 @@ void pmm_free_block(void *block) {
 }
 
 //! Free multiple contiguous allocated memory blocks
-//! @param block Physical address of the first block to free (will be aligned down to block boundary)
+//! @param block Physical address of the first block to free (will be aligned down to block
+//! boundary)
 //! @param size Number of blocks to free
 //! @note Prints a warning if any block is outside managed memory or already free
 void pmm_free_blocks(void *block, uint32_t size) {
