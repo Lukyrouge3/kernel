@@ -51,6 +51,11 @@ void _start(void) {
     // Place bitmap at 1MB mark (well above kernel and its data)
     pmm_init(0x100000);
 
+    void *test_alloc = pmm_alloc_block();
+    serial_printf("Allocated block at: 0x%x, total blocks used: %d\n", (uint32_t)test_alloc,
+                  _pmm_used_blocks);
+
     for (;;) {
+        halt_cpu();
     }
 }

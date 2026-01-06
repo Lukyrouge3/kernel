@@ -1,4 +1,6 @@
 #pragma once
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #ifndef KERNEL_SECTORS
@@ -20,15 +22,29 @@ void check_memory_map(void);
 #define PMM_BITMAP_BLOCK_SIZE 0x1000 // 4KB blocks
 
 //! size of physical memory
-extern uint32_t _memory_size;
+extern uint32_t _pmm_memory_size;
 
 //! number of blocks currently in use
-extern uint32_t _used_blocks;
+extern uint32_t _pmm_used_blocks;
 
 //! maximum number of available memory blocks
-extern uint32_t _max_blocks;
+extern uint32_t _pmm_max_blocks;
 
 //! memory map bit array. Each bit represents a memory block
-extern uint32_t *_memory_map;
+extern uint32_t *_pmm_memory_map;
+extern uint32_t _pmm_physical_memory_base;
 
 void pmm_init(uint32_t bitmap_location);
+void pmm_init_region(uint32_t base, size_t length);
+int pmm_get_block_count();
+void *pmm_alloc_block();
+void *pmm_alloc_blocks(uint32_t size);
+void pmm_free_block(void *block);
+void pmm_free_blocks(void *block, uint32_t size);
+int pmm_count_free_blocks();
+
+void mmap_set(int bit);
+void mmap_unset(int bit);
+bool mmap_test(int bit);
+uint32_t mmap_first_free();
+uint32_t mmap_first_free_sized(uint32_t size);
