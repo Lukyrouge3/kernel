@@ -21,7 +21,7 @@ static int scancode_is_break_code(uint8_t scancode) {
 }
 
 void keyboard_handler(void) {
-    uint8_t scancode = ps2_read_data();
+    uint8_t scancode = inb(PS2_DATA_PORT);
     if (scancode == 0xE0) {
         scancode_state = SCANCODE_EXTENDED_E0;
         return;
