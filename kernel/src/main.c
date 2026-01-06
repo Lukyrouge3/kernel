@@ -31,7 +31,6 @@ static void assert_flat_segments(void) {
     */
 }
 
-// cppcheck-suppress unusedFunction
 void _start(void) {
     serial_init_com1();
     assert_protected_mode();
@@ -40,9 +39,6 @@ void _start(void) {
     pic_remap();
     idt_init();
     vga_clear_screen();
-
-    sleep(1000); // Sleep for 1 second
-    serial_printf("Kernel initialized successfully!\n");
 
     for (;;) {
     }
