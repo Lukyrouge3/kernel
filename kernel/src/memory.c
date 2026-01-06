@@ -10,6 +10,18 @@ static uint32_t _pmm_max_blocks = 0;
 static uint32_t *_pmm_memory_map = 0;
 static uint32_t _pmm_physical_memory_base = 0;
 
+static bool _pmm_check_address(uint32_t addr) {
+    return addr >= _pmm_physical_memory_base && addr < _pmm_physical_memory_base + _pmm_memory_size;
+}
+
+static bool _pmm_check_address_range(uint32_t addr, size_t length) {
+    return _pmm_check_address(addr) && _pmm_check_address(addr + length - 1);
+}
+
+static void *_pmm_align_address(uint32_t addr) {
+    return (void *)(addr & ~(PMM_BITMAP_BLOCK_SIZE - 1));
+}
+
 void check_memory_map(void) {
     uint16_t entry_count = *(uint16_t *)0x7FFE;
     struct E820Entry *memory_map = (struct E820Entry *)0x8000;
@@ -50,9 +62,10 @@ void pmm_init(uint32_t bitmap_location) {
     struct E820Entry *memory_map = (struct E820Entry *)0x8000;
     uint16_t entry_count = *(uint16_t *)0x7FFE;
 
-    ASSERT(memory_map != NULL);
     ASSERT(entry_count >= 4);
     ASSERT(memory_map[3].type == 1);
+    ASSERT(memory_map[3].length <= UINT32_MAX); // To avoid 32-bit overflow in _pmm_memory_size
+    ASSERT(memory_map[3].base <= UINT32_MAX);
 
     _pmm_memory_size =
         memory_map[3]
@@ -65,9 +78,9 @@ void pmm_init(uint32_t bitmap_location) {
 
     // By default we mark all memory as used
     memset(_pmm_memory_map, 0xff,
-           pmm_get_block_count() / 8); // We divide by 8 because memset works in bytes
-    _pmm_used_blocks = pmm_get_block_count();
+           (pmm_get_block_count() + 7) / 8); // Round up to ensure all bits have space
 
+    _pmm_used_blocks = pmm_get_block_count();
     serial_printf("PMM initialized: %d KB total, %d blocks\n", _pmm_memory_size / 1024,
                   _pmm_max_blocks);
 
@@ -88,7 +101,7 @@ void mmap_set(int bit) {
 
 void mmap_unset(int bit) {
     if (bit < 0 || bit >= (int)pmm_get_block_count()) {
-        serial_printf("mmap_set: Attempt to unset bit out of range %d!\n", bit);
+        serial_printf("mmap_unset: Attempt to unset bit out of range %d!\n", bit);
         return;
     }
 
@@ -100,8 +113,8 @@ void mmap_unset(int bit) {
 
 bool mmap_test(int bit) {
     if (bit < 0 || bit >= (int)pmm_get_block_count()) {
-        serial_printf("mmap_set: Attempt to test bit out of range %d!\n", bit);
-        return;
+        serial_printf("mmap_test: Attempt to test bit out of range %d!\n", bit);
+        return false;
     }
 
     int bitmap_index = bit / 32;
@@ -115,13 +128,16 @@ int pmm_get_block_count() {
 }
 
 void pmm_init_region(uint32_t base, size_t length) {
-    ASSERT(_pmm_check_adress_range(base, length));
+    ASSERT(_pmm_check_address_range(base, length));
     ASSERT((base % PMM_BITMAP_BLOCK_SIZE) == 0);
 
     uint32_t start_block = (base - _pmm_physical_memory_base) / PMM_BITMAP_BLOCK_SIZE;
     uint32_t block_count = (length + PMM_BITMAP_BLOCK_SIZE - 1) / PMM_BITMAP_BLOCK_SIZE;
 
     for (uint32_t i = 0; i < block_count; i++) {
+        if (!mmap_test(start_block + i))
+            continue;
+
         mmap_unset(start_block + i);
         _pmm_used_blocks--;
     }
@@ -134,8 +150,10 @@ void pmm_init_region(uint32_t base, size_t length) {
 }
 
 // For now we use a simple first-fit algorithm but it sucks, we can improve it later
+// We use (pmm_get_block_count() + 31) / 32 to ensure we cover all bits in the bitmap
+// (basically a round up)
 int32_t mmap_first_free() {
-    for (uint32_t i = 0; i < pmm_get_block_count() / 32; i++) {
+    for (int i = 0; i < (pmm_get_block_count() + 31) / 32; i++) {
         if (_pmm_memory_map[i] != 0xffffffff) { // Not all blocks used
             for (int j = 0; j < 32; j++) {
                 int bit = 1 << j;
@@ -153,7 +171,7 @@ int32_t mmap_first_free_sized(uint32_t size) {
     uint32_t free_count = 0;
     uint32_t start_bit = 0;
 
-    for (uint32_t i = 0; i < pmm_get_block_count(); i++) {
+    for (int i = 0; i < pmm_get_block_count(); i++) {
         if (!mmap_test(i)) {
             if (free_count == 0) {
                 start_bit = i;
@@ -195,7 +213,8 @@ void *pmm_alloc_blocks(uint32_t size) {
     if (size == 0) {
         return NULL;
     }
-    if (size > (pmm_get_block_count() - pmm_get_used_blocks())) { // Not enough free blocks
+    if (size > (uint32_t)(pmm_get_block_count() - pmm_get_used_blocks())) {
+        // Not enough free blocks
         return NULL;
     }
 
@@ -218,7 +237,7 @@ void *pmm_alloc_blocks(uint32_t size) {
 }
 
 void pmm_free_block(void *block) {
-    uint32_t addr = (uint32_t)_pmm_align_adress((uint32_t)block);
+    uint32_t addr = (uint32_t)_pmm_align_address((uint32_t)block);
     if (!_pmm_check_address(addr)) {
         serial_printf("PMM Free Block: Attempt to free block outside managed memory!\n");
         return;
@@ -235,8 +254,8 @@ void pmm_free_block(void *block) {
 }
 
 void pmm_free_blocks(void *block, uint32_t size) {
-    uint32_t addr = (uint32_t)_pmm_align_adress((uint32_t)block);
-    if (!_pmm_check_adress_range(addr, size * PMM_BITMAP_BLOCK_SIZE)) {
+    uint32_t addr = (uint32_t)_pmm_align_address((uint32_t)block);
+    if (!_pmm_check_address_range(addr, size * PMM_BITMAP_BLOCK_SIZE)) {
         serial_printf("PMM Free Blocks: Attempt to free blocks outside managed memory!\n");
         return;
     }
@@ -260,26 +279,16 @@ int pmm_get_used_blocks() {
 
 void pmm_deinit_region(uint32_t base, size_t length) {
     // Since it's supposed to be a system call we can assert
-    ASSERT(_pmm_check_adress_range(base, length));
+    ASSERT(_pmm_check_address_range(base, length));
     ASSERT((base % PMM_BITMAP_BLOCK_SIZE) == 0); // We check if the base is aligned
 
     uint32_t start_block = (base - _pmm_physical_memory_base) / PMM_BITMAP_BLOCK_SIZE;
     uint32_t block_count = (length + PMM_BITMAP_BLOCK_SIZE - 1) / PMM_BITMAP_BLOCK_SIZE;
 
     for (uint32_t i = 0; i < block_count; i++) {
+        if (mmap_test(start_block + i))
+            continue;
         mmap_set(start_block + i);
         _pmm_used_blocks++;
     }
-}
-
-static bool _pmm_check_address(uint32_t addr) {
-    return addr >= _pmm_physical_memory_base && addr < _pmm_physical_memory_base + _pmm_memory_size;
-}
-
-static bool _pmm_check_adress_range(uint32_t addr, size_t length) {
-    return _pmm_check_address(addr) && _pmm_check_address(addr + length - 1);
-}
-
-static void *_pmm_align_adress(uint32_t addr) {
-    return (void *)(addr & ~(PMM_BITMAP_BLOCK_SIZE - 1));
 }
