@@ -34,5 +34,5 @@ int pmm_get_used_blocks();
 void mmap_set(int bit);
 void mmap_unset(int bit);
 bool mmap_test(int bit);
-uint32_t mmap_first_free();
-uint32_t mmap_first_free_sized(uint32_t size);
+int32_t mmap_first_free();
+int32_t mmap_first_free_sized(uint32_t size);
