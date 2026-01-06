@@ -227,13 +227,13 @@ void *pmm_alloc_blocks(uint32_t size) {
         mmap_set(free_bit + i);
     }
 
-    uint32_t adress =
+    uint32_t address =
         free_bit * PMM_BITMAP_BLOCK_SIZE +
         _pmm_physical_memory_base; // Change to a better system to map different physical spaces
 
     _pmm_used_blocks += size;
 
-    return (void *)adress;
+    return (void *)address;
 }
 
 void pmm_free_block(void *block) {
