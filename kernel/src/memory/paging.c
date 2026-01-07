@@ -18,6 +18,7 @@ void paging_init(void) {
 
     for (uint32_t dir_index = first_dir; dir_index <= last_dir; dir_index++) {
         uint32_t *page = pmm_alloc_block();
+        ASSERT(page != NULL); // Ensure we got a block, since it's critical we panic if it fails
         memset(page, 0, PAGE_SIZE);
 
         for (int page_index = 0; page_index < PAGE_TABLE_SIZE; page_index++) {

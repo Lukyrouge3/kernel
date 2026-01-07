@@ -76,6 +76,10 @@ void check_memory_map(void) {
 void pmm_init(uint32_t bitmap_location) {
     ASSERT((bitmap_location & 0xFFF) == 0); // Must be 4KB aligned
 
+    static bool initialized = false;
+    ASSERT(!initialized); // PMM should only be initialized once
+    initialized = true;
+
     _pmm_memory_size = 0;
     _pmm_physical_memory_base = 0;
     for (int i = 0; i < entry_count; i++) {
