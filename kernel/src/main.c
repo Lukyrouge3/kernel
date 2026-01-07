@@ -4,6 +4,7 @@
 #include "io/printf/printf.h"
 #include "io/serial.h"
 #include "io/vga.h"
+#include "memory.h"
 #include "panic.h"
 #include "timer.h"
 #include <stdint.h>
@@ -30,7 +31,6 @@ static void assert_flat_segments(void) {
     */
 }
 
-// cppcheck-suppress unusedFunction
 void _start(void) {
     serial_init_com1();
     assert_protected_mode();
@@ -39,9 +39,17 @@ void _start(void) {
     idt_init();
     vga_clear_screen();
 
-    sleep(1000); // Sleep for 1 second
+    // sleep(1000); // Sleep for 1 second
     serial_printf("Kernel initialized successfully!\n");
 
+    check_memory_map();
+
+    uint16_t kernel_sectors = *(uint16_t *)0x7FFC;
+    serial_printf("Kernel loaded: %d sectors\n", kernel_sectors);
+
+    pmm_init(0x186A0); // Arbitrary location (100KB) from start of memory for PMM bitmap
+
     for (;;) {
+        halt_cpu();
     }
 }
