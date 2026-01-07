@@ -60,22 +60,8 @@ void check_memory_map(void) {
         // Validate length is non-zero
         ASSERT(memory_map[i].length > 0);
 
-        uint32_t base_hi = (uint32_t)(memory_map[i].base >> 32);
-        uint32_t base_lo = (uint32_t)(memory_map[i].base & 0xFFFFFFFF);
-        uint32_t len_hi = (uint32_t)(memory_map[i].length >> 32);
-        uint32_t len_lo = (uint32_t)(memory_map[i].length & 0xFFFFFFFF);
-
-        if (base_hi) {
-            serial_printf("Entry %d: Base=0x%x%x, ", i, base_hi, base_lo);
-        } else {
-            serial_printf("Entry %d: Base=0x%x, ", i, base_lo);
-        }
-
-        if (len_hi) {
-            serial_printf("Length=0x%x%x, Type=%d\n", len_hi, len_lo, memory_map[i].type);
-        } else {
-            serial_printf("Length=0x%x, Type=%d\n", len_lo, memory_map[i].type);
-        }
+        serial_printf("Entry %d: Base=0x%llx, ", i, memory_map[i].base);
+        serial_printf("Length=0x%llx, Type=%d\n", memory_map[i].length, memory_map[i].type);
     }
 }
 
