@@ -45,9 +45,13 @@ void _start(void) {
     check_memory_map();
 
     uint16_t kernel_sectors = *(uint16_t *)0x7FFC;
-    serial_printf("Kernel loaded: %d sectors\n", kernel_sectors);
+    serial_printf("Kernel loaded: %d sectors, theorical end: 0x%X\n", kernel_sectors,
+                  KERNEL_BASE_ADDRESS + (kernel_sectors * 512));
+    serial_printf("Kernel end address: 0x%X\n", (uint32_t)&__kernel_end);
 
-    pmm_init(0x186A0); // Arbitrary location (100KB) from start of memory for PMM bitmap
+    uint32_t pmm_start = ((uint32_t)&__kernel_end + 0xFFF) & ~0xFFF; // Align to next 4KB
+    pmm_init(pmm_start);
+    paging_init();
 
     for (;;) {
         halt_cpu();
