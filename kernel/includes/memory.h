@@ -61,9 +61,9 @@ int32_t mmap_first_free_sized(uint32_t size);
 #define PAGE_TABLE_SIZE 1024
 #define PAGE_SIZE 0x1000 // 4KB
 
-// Defined in bootloader asm/paging.asm
+// Defined in kernel/asm/paging.asm
 extern void load_page_directory(uint32_t *);
-// Defined in bootloader asm/paging.asm
+// Defined in kernel/asm/paging.asm
 extern void enable_paging();
 
 void paging_init(void);

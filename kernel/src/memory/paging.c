@@ -7,7 +7,7 @@ static uint32_t page_directory[PAGE_DIRECTORY_SIZE] __attribute__((aligned(4096)
 void paging_init(void) {
 
     for (int i = 0; i < PAGE_DIRECTORY_SIZE; i++) {
-        page_directory[i] = PG_RW; // Not present, kernel, read/write
+        page_directory[i] = 0; // Not present
     }
 
     uint32_t start = 0x0;
