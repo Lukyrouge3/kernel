@@ -2,6 +2,10 @@
 
 #include <stdint.h>
 
+#define KERNEL_BASE_ADDRESS 0x00100000 // 1MB
+
+extern char __kernel_end;
+
 uint16_t read_cs(void);
 uint16_t read_ds(void);
 uint16_t read_ss(void);
@@ -30,3 +34,5 @@ uint32_t read_eflags(void);
 void write_eflags(uint32_t flags);
 void disable_interrupts(void);
 void enable_interrupts(void);
+
+extern void move_stack_pointer(uint32_t new_sp);
