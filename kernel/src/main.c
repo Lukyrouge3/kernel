@@ -40,18 +40,14 @@ void _start(void) {
     vga_clear_screen();
 
     // sleep(1000); // Sleep for 1 second
-    serial_printf("Kernel initialized successfully!\n");
 
+    serial_printf("\n\n === PMM AND PAGING INIT ===\n");
     check_memory_map();
-
-    uint16_t kernel_sectors = *(uint16_t *)0x7FFC;
-    serial_printf("Kernel loaded: %d sectors, theorical end: 0x%X\n", kernel_sectors,
-                  KERNEL_BASE_ADDRESS + (kernel_sectors * 512));
-    serial_printf("Kernel end address: 0x%X\n", (uint32_t)&__kernel_end);
 
     uint32_t pmm_start = ((uint32_t)&__kernel_end + 0xFFF) & ~0xFFF; // Align to next 4KB
     pmm_init(pmm_start);
     paging_init();
+    serial_printf("=== PMM AND PAGING INIT COMPLETE ===\n");
 
     for (;;) {
         halt_cpu();

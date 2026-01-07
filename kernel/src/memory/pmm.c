@@ -40,6 +40,10 @@ uint32_t pmm_get_memory_size(void) {
     return _pmm_memory_size;
 }
 
+static uint32_t _pmm_bitmap_size_in_bytes(void) {
+    return (pmm_get_block_count() + 7) / 8; // Round up to ensure all bits have space
+}
+
 //! Validate and print the E820 memory map from BIOS
 //! @note Reads from fixed BIOS locations (0x7FFE for count, 0x8000 for entries)
 //! @note Asserts that all entries are valid (type 1-5, non-zero length)
@@ -71,33 +75,42 @@ void check_memory_map(void) {
 //! @note Currently only manages the 4th E820 entry (limitation for future improvement)
 void pmm_init(uint32_t bitmap_location) {
     ASSERT((bitmap_location & 0xFFF) == 0); // Must be 4KB aligned
-    ASSERT(entry_count >= 4);
-    ASSERT(memory_map[3].type == 1);
-    ASSERT(memory_map[3].length <= UINT32_MAX); // To avoid 32-bit overflow in _pmm_memory_size
-    ASSERT(memory_map[3].base <= UINT32_MAX);
 
-    _pmm_memory_size =
-        memory_map[3]
-            .length; // For now we only take the 4th entry cause we dont have a way to map others
+    _pmm_memory_size = 0;
+    _pmm_physical_memory_base = 0;
+    for (int i = 0; i < entry_count; i++) {
+        _pmm_memory_size +=
+            (uint32_t)memory_map[i].length; // Safe to cast since we will always be in 32-bit
+    }
+
     _pmm_max_blocks = _pmm_memory_size / PMM_BITMAP_BLOCK_SIZE;
     _pmm_memory_map = (uint32_t *)bitmap_location;
-    _pmm_physical_memory_base = memory_map[3].base;
+
+    serial_printf("PMM initialized: %d KB total (0x%X), %d blocks. Base is 0x%X\n",
+                  _pmm_memory_size / 1024, _pmm_memory_size, _pmm_max_blocks,
+                  _pmm_physical_memory_base);
 
     ASSERT(bitmap_location >= _pmm_physical_memory_base); // Bitmap must be in managed memory
-    ASSERT(bitmap_location + (pmm_get_block_count() + 7) / 8 <=
+    ASSERT(bitmap_location + _pmm_bitmap_size_in_bytes() <=
            _pmm_physical_memory_base + _pmm_memory_size); // Bitmap must fit in managed memory
 
     serial_printf("Location of PMM bitmap: 0x%x\n", bitmap_location);
 
     // By default we mark all memory as used
-    memset(_pmm_memory_map, 0xff,
-           (pmm_get_block_count() + 7) / 8); // Round up to ensure all bits have space
+    pmm_deinit_region(_pmm_physical_memory_base, _pmm_memory_size);
 
     _pmm_used_blocks = pmm_get_block_count();
-    serial_printf("PMM initialized: %d KB total, %d blocks\n", _pmm_memory_size / 1024,
-                  _pmm_max_blocks);
 
-    pmm_init_region(_pmm_physical_memory_base, _pmm_memory_size);
+    for (int i = 0; i < entry_count; i++) {
+        if (memory_map[i].type == 1) { // Usable RAM
+            pmm_init_region((uint32_t)memory_map[i].base, (size_t)memory_map[i].length);
+            serial_printf("PMM: Usable RAM region initialized (0x%llx - 0x%llx)\n",
+                          memory_map[i].base, memory_map[i].base + memory_map[i].length);
+        }
+    }
+
+    ASSERT(!mmap_test(KERNEL_BASE_ADDRESS /
+                      PMM_BITMAP_BLOCK_SIZE)); // Kernel region should be usable before deinit
 
     // deinit kernel region
     pmm_deinit_region(KERNEL_BASE_ADDRESS,
@@ -105,9 +118,11 @@ void pmm_init(uint32_t bitmap_location) {
     serial_printf("PMM: Kernel region deinitialized (0x%X - 0x%X)\n", KERNEL_BASE_ADDRESS,
                   (uint32_t)&__kernel_end);
 
-    uint32_t bitmap_bytes = (pmm_get_block_count() + 7) / 8;
+    uint32_t bitmap_bytes = _pmm_bitmap_size_in_bytes();
     uint32_t bitmap_len = _pmm_align_block_up(bitmap_bytes);
 
+    ASSERT(!mmap_test(bitmap_location /
+                      PMM_BITMAP_BLOCK_SIZE)); // Bitmap region should be usable before deinit
     // deinit pmm bitmap region
     pmm_deinit_region(bitmap_location, bitmap_len);
     serial_printf("PMM: Bitmap region deinitialized (0x%X - 0x%X)\n", bitmap_location,
@@ -127,7 +142,7 @@ void pmm_init(uint32_t bitmap_location) {
 //! Prints a warning if the bit is out of range
 void mmap_set(int bit) {
     if (bit < 0 || bit >= (int)pmm_get_block_count()) {
-        serial_printf("mmap_set: Attempt to set bit out of range %d!\n", bit);
+        serial_printf("mmap_set: Attempt to set bit out of range %x!\n", bit);
         return;
     }
 
@@ -142,7 +157,8 @@ void mmap_set(int bit) {
 //! Prints a warning if the bit is out of range
 void mmap_unset(int bit) {
     if (bit < 0 || bit >= (int)pmm_get_block_count()) {
-        serial_printf("mmap_unset: Attempt to unset bit out of range %d!\n", bit);
+        serial_printf("mmap_unset: Attempt to unset bit out of range %x (max is: %x)!\n", bit,
+                      (int)pmm_get_block_count());
         return;
     }
 
@@ -157,7 +173,8 @@ void mmap_unset(int bit) {
 //! @return true if the block is marked as used, false if free or out of range
 bool mmap_test(int bit) {
     if (bit < 0 || bit >= (int)pmm_get_block_count()) {
-        serial_printf("mmap_test: Attempt to test bit out of range %d!\n", bit);
+        serial_printf("mmap_test: Attempt to test bit out of range %x! (max is: %x)!\n", bit,
+                      (int)pmm_get_block_count());
         return false;
     }
 
