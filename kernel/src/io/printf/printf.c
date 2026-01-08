@@ -42,29 +42,43 @@ static void put_int(va_list *args, putc_fn putc) {
     }
 }
 
-static void put_hex(va_list *args, putc_fn putc, bool uppercase) {
-    unsigned int value = va_arg(*args, unsigned int);
-    char buffer[9]; // Enough for 32-bit hex
+static void put_hex_impl(unsigned long long value, putc_fn putc, bool uppercase, int width,
+                         char pad_char) {
+    char buffer[17]; // Enough for 64-bit hex
     int index = 0;
 
     if (value == 0) {
-        putc('0');
-        return;
+        buffer[index++] = '0';
+    } else {
+        while (value > 0) {
+            unsigned int digit = value % 16;
+            if (digit < 10) {
+                buffer[index++] = digit + '0';
+            } else {
+                buffer[index++] = digit - 10 + 'a';
+            }
+            value /= 16;
+        }
     }
 
-    while (value > 0) {
-        unsigned int digit = value % 16;
-        if (digit < 10) {
-            buffer[index++] = digit + '0';
-        } else {
-            buffer[index++] = digit - 10 + 'a';
-        }
-        value /= 16;
+    // Add padding if needed
+    while (index < width) {
+        buffer[index++] = pad_char;
     }
 
     for (int j = index - 1; j >= 0; j--) {
         putc(uppercase ? toupper(buffer[j]) : buffer[j]);
     }
+}
+
+static void put_hex(va_list *args, putc_fn putc, bool uppercase, int width, char pad_char) {
+    unsigned int value = va_arg(*args, unsigned int);
+    put_hex_impl(value, putc, uppercase, width, pad_char);
+}
+
+static void put_hex_long(va_list *args, putc_fn putc, bool uppercase, int width, char pad_char) {
+    unsigned long long value = va_arg(*args, unsigned long long);
+    put_hex_impl(value, putc, uppercase, width, pad_char);
 }
 
 void printf(const char *format, putc_fn putc, va_list *args) {
@@ -78,6 +92,26 @@ void printf(const char *format, putc_fn putc, va_list *args) {
             if (format[i] == '\0') {
                 break;
             }
+
+            // Parse width and padding
+            int width = 0;
+            char pad_char = ' ';
+            if (format[i] == '0') {
+                pad_char = '0';
+                i++;
+            }
+            while (format[i] >= '0' && format[i] <= '9') {
+                width = width * 10 + (format[i] - '0');
+                i++;
+            }
+
+            // Parse length modifier
+            int long_count = 0;
+            while (format[i] == 'l') {
+                long_count++;
+                i++;
+            }
+
             switch (format[i]) {
             case 'c':
                 put_char(args, putc);
@@ -94,10 +128,18 @@ void printf(const char *format, putc_fn putc, va_list *args) {
                 }
             } break;
             case 'x':
-                put_hex(args, putc, false);
+                if (long_count >= 2) {
+                    put_hex_long(args, putc, false, width, pad_char);
+                } else {
+                    put_hex(args, putc, false, width, pad_char);
+                }
                 break;
             case 'X':
-                put_hex(args, putc, true);
+                if (long_count >= 2) {
+                    put_hex_long(args, putc, true, width, pad_char);
+                } else {
+                    put_hex(args, putc, true, width, pad_char);
+                }
                 break;
             case '%':
                 putc('%');
