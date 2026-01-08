@@ -111,7 +111,7 @@ loader:
     mov cl, 2           ; Start from sector 2 (sector 1 is index 1, but CHS is 1-indexed)
     mov dh, 0           ; Head 0
     mov dl, 0           ; Drive 0 (floppy)
-    mov bx, 0x1000      ; Segment
+    mov bx, KERNEL_SRC_SEG      ; Segment
     mov es, bx
     xor bx, bx          ; Offset 0 (so ES:BX = 0x1000:0x0000 = 0x10000)
     int 0x13            ; BIOS disk interrupt

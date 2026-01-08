@@ -1,5 +1,6 @@
 #include "io/printf/printf.h"
 #include "memory.h"
+#include "panic.h"
 #include "stdlib.h"
 
 static uint32_t page_directory[PAGE_DIRECTORY_SIZE] __attribute__((aligned(4096))) = {0};
