@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/kernel/includes",
+                "${workspaceFolder}/kernel/src",
+                "/opt/cross/lib/gcc/i686-elf/14.2.0/include",
+                "/opt/cross/lib/gcc/i686-elf/14.2.0/include-fixed"
+            ],
+            "defines": [
+                "__STDC_HOSTED__=0"
+            ],
+            "compilerPath": "/opt/cross/bin/i686-elf-gcc",
+            "cStandard": "c11",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "gcc-x86",
+            "compilerArgs": [
+                "-Werror=implicit-function-declaration",
+                "-m32",
+                "-ffreestanding"
+            ]
+        }
+    ],
+    "version": 4
+}

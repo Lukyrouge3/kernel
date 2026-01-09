@@ -49,6 +49,11 @@ void _start(void) {
     paging_init();
     serial_printf("=== PMM AND PAGING INIT COMPLETE ===\n");
 
+    // serial_printf("Allocating 60 MB of kernel memory via paging_alloc...\n");
+
+    // void *addr = paging_alloc(60000000, false);
+    // serial_printf("Allocated 60 MB at virtual address: 0x%X\n", (uint32_t)addr);
+
     for (;;) {
         halt_cpu();
     }

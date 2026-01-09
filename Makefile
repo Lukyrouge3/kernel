@@ -14,7 +14,7 @@ SRCS=$(shell find $(SRC_DIR) -name '*.c')
 OBJS=$(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS)) \
 	 $(patsubst $(ASM_DIR)/%.asm,$(BUILD_DIR)/%.o,$(shell find $(ASM_DIR) -name '*.asm'))
 
-CFLAGS=-std=c11 -O2 -Wall -Wextra \
+CFLAGS=-std=c11 -O2 -Wall -Wextra -Werror=implicit-function-declaration \
        -ffreestanding -fno-stack-protector -fno-pic -fno-pie \
        -m32 -I $(INC_DIR)
 LDFLAGS=-T kernel/linker.ld -nostdlib

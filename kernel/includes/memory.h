@@ -62,8 +62,13 @@ int32_t mmap_first_free_sized(uint32_t size);
 #define PAGE_SIZE 0x1000 // 4KB
 
 // Defined in kernel/asm/paging.asm
-extern void load_page_directory(uint32_t *);
+extern void load_page_directory(uint32_t *table);
 // Defined in kernel/asm/paging.asm
 extern void enable_paging();
 
 void paging_init(void);
+void *paging_alloc(uint32_t size, bool user_accessible);
+void paging_free(uint32_t addr, uint32_t size);
+
+void *kmalloc(uint32_t size);
+void kfree(void *ptr);
